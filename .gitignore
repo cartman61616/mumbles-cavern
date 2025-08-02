@@ -44,6 +44,7 @@ personal/
 .vscode/
 .idea/
 *.sublime-*
+.claude/
 
 # Archive files
 *.zip
