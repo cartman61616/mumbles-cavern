@@ -47,6 +47,14 @@ Following network_setup.md Step 3:
 - Primary guide: [`network_setup.md`](network_setup.md)
 - Master guide: [`master_deployment_guide.md`](master_deployment_guide.md)
 
+## Gaming VLAN Configuration Details
+- **VLAN ID**: 80
+- **Network Name**: Gaming
+- **Subnet**: 192.168.80.0/24
+- **DHCP Range**: 192.168.80.100-200
+- **IGMP Snooping**: Disabled (critical for gaming performance)
+- **QoS**: Highest priority (to be configured)
+
 ### Issues/Notes
 - Need to verify UniFi Flex Mini model and port configuration
 - Confirm Dell node MAC addresses for proper port assignment
