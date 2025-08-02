@@ -1,0 +1,75 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+logs/
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Secrets and credentials
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+.env
+.env.local
+.env.production
+
+# Personal notes and drafts
+notes/
+drafts/
+personal/
+*.private.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Configuration overrides
+config.local.*
+*.local.conf
+
+# Terraform state (if used for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Ansible vault files (if used)
+vault.yml
+*.vault
+
+# Documentation build artifacts
+_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# Test and validation outputs
+test-results/
+validation-reports/
