@@ -81,7 +81,7 @@ Track your deployment progress using this checklist:
 
 ### Phase Status
 - [x] **Hardware Preparation** - BIOS updates and optimization complete
-- [🔄] **Network Infrastructure** - UniFi VLANs created, configuring switches ([Progress](network_setup_progress.md))
+- [x] **Network Infrastructure** - VLANs, QoS, and switch configuration complete! 🚀 ([Progress](network_setup_progress.md))
 - [ ] **Primary Node** - First Proxmox node operational
 - [ ] **Cluster Formation** - All nodes joined to cluster
 - [ ] **Storage Integration** - TrueNAS and local storage configured
@@ -91,7 +91,7 @@ Track your deployment progress using this checklist:
 
 ### Infrastructure Status
 - [x] **Hardware Validated** - All Dell nodes tested and operational
-- [ ] **Network Segmentation** - VLANs properly configured and tested
+- [x] **Network Segmentation** - VLANs properly configured and tested
 - [ ] **High Availability** - Cluster failover tested
 - [ ] **Backup Strategy** - Data protection implemented
 - [ ] **Monitoring** - System health monitoring active
