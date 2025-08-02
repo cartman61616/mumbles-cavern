@@ -55,7 +55,25 @@ Following network_setup.md Step 3:
 - **IGMP Snooping**: Disabled (critical for gaming performance)
 - **QoS**: Highest priority (to be configured)
 
-### Issues/Notes
-- Need to verify UniFi Flex Mini model and port configuration
-- Confirm Dell node MAC addresses for proper port assignment
-- Test VLAN connectivity before proceeding to DHCP reservations
+### ✅ Switch Port Configuration (Step 3-4) - COMPLETED!
+
+**USW Flex Mini Configuration:**
+- **Port 1**: Uplink to USW-16-PoE (192.168.0.177)
+- **Port 2**: Ready for Dell Node 1 (pve-node1)
+- **Port 3**: Ready for Dell Node 2 (pve-node2)  
+- **Port 4**: Ready for Dell Node 3 (pve-node3) - Future
+- **Port 5**: Ready for Dell Node 4 (pve-node4) - Future
+
+**Port Profile Applied: Dell-Cluster-Proxmox**
+- Native VLAN: Default (1) - Initial deployment
+- Tagged VLANs: All VLANs available
+- Perfect flexibility for homelab growth!
+
+**Network Topology Identified:**
+Mushroom Kingdom (UDM Pro) → USW-16-PoE → USW Flex Mini → Dell Cluster
+192.168.0.1    192.168.0.177   192.168.0.171
+
+### 🔄 Current Step: DHCP Reservations & QoS
+- Configure DHCP reservations for Dell nodes
+- Set up gaming QoS optimization
+- Create firewall rules for inter-VLAN communication
