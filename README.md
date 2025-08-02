@@ -37,10 +37,6 @@ This repository contains detailed documentation for deploying a complete homelab
 | [`gaming_setup.md`](gaming_setup.md) | Gaming optimization and GPU passthrough |
 | [`shared_infrastructure.md`](shared_infrastructure.md) | Common infrastructure components |
 
-### Corrections and Updates
-
-- [`corrected_network_setup.md`](corrected_network_setup.md) - Updated networking procedures
-- [`corrected_storage_setup.md`](corrected_storage_setup.md) - Revised storage configuration
 
 ## 🚀 Quick Start
 

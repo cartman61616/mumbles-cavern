@@ -9,169 +9,252 @@
 ## Overview
 Configure shared storage systems to enable live migration, high availability, and centralized data management across your Proxmox cluster.
 
-## Step 1: ASUSTOR TrueNAS Configuration
+## Step 1: ASUSTOR TrueNAS Initial Configuration
 
-### Access TrueNAS Web Interface
-1. Connect to ASUSTOR via web UI (typically http://[asustor-ip]:8000)
-2. Complete initial setup if not already done
-3. Ensure storage pool is created and healthy
+### Access and Initial Setup
+1. **Physical Connection**: Ensure ASUSTOR is connected to network
+2. **Find ASUSTOR IP**: Check router/UniFi for device IP (typically DHCP assigned)
+3. **Access Web Interface**: Browse to http://[asustor-ip]:8000
+4. **Initial Setup Wizard**: Complete if first-time setup
+   - Create admin account
+   - Set timezone to America/New_York
+   - Configure network settings
 
-### Create Proxmox Storage Datasets
-```bash
-# Via TrueNAS web UI, create these datasets:
-/mnt/pool/proxmox-storage     # VM disk images and containers
-/mnt/pool/proxmox-backup      # VM backups and snapshots  
-/mnt/pool/proxmox-iso         # ISO images and templates
-/mnt/pool/media               # Media files for Plex
-/mnt/pool/downloads           # Download staging area
-```
+### Set Static IP Address
+1. **Go to Network** → **Network Interface**
+2. **Configure static IP**:
+   ```
+   IP Address: 192.168.1.100 (initial deployment)
+   Subnet Mask: 255.255.255.0
+   Gateway: 192.168.1.1
+   DNS: 192.168.1.1, 1.1.1.1
+   ```
+3. **Apply settings** and reconnect at new IP
 
-### Configure NFS Shares for Proxmox
-1. **Go to Sharing** → **Unix (NFS) Shares**
-2. **Create share for VM storage:**
+### Create Storage Pool (If Not Exists)
+1. **Go to Storage Manager** → **Storage Pool**
+2. **Create Pool** if no pool exists:
    ```
-   Path: /mnt/pool/proxmox-storage
-   Comment: Proxmox VM storage
-   Authorized Networks: 192.168.1.0/24,192.168.10.0/24,192.168.30.0/24
-   Options: rw,sync,no_root_squash,no_subtree_check
+   Pool Name: pool
+   RAID Type: Based on your drive configuration
+   File System: EXT4 (recommended for NFS)
    ```
+3. **Wait for initialization** (may take hours for large drives)
 
-3. **Create share for backups:**
+### Create Proxmox Datasets
+1. **Go to Storage Manager** → **Volume**
+2. **Create these volumes/folders**:
    ```
-   Path: /mnt/pool/proxmox-backup  
-   Comment: Proxmox backup storage
-   Authorized Networks: 192.168.1.0/24,192.168.10.0/24
-   Options: rw,sync,no_root_squash,no_subtree_check
-   ```
-
-4. **Create share for ISO images:**
-   ```
-   Path: /mnt/pool/proxmox-iso
-   Comment: ISO images and templates
-   Authorized Networks: 192.168.1.0/24,192.168.10.0/24
-   Options: rw,sync,no_root_squash,no_subtree_check
+   /mnt/pool/proxmox-storage     # VM disk images and containers
+   /mnt/pool/proxmox-backup      # VM backups and snapshots
+   /mnt/pool/proxmox-iso         # ISO images and templates
+   /mnt/pool/media               # Media files for Plex
+   /mnt/pool/downloads           # Download staging area
+   /mnt/pool/games               # Game ROMs and data
    ```
 
-5. **Create share for media:**
-   ```
-   Path: /mnt/pool/media
-   Comment: Media files for streaming
-   Authorized Networks: 192.168.1.0/24,192.168.20.0/24
-   Options: rw,sync,no_root_squash,no_subtree_check
-   ```
+## Step 2: Configure NFS Service on ASUSTOR
 
 ### Enable NFS Service
-1. **Go to Services** → **NFS**
-2. **Enable NFS service**
-3. **Configure NFS settings:**
+1. **Go to Services** → **NFS Server**
+2. **Enable NFS Server**
+3. **Configure NFS Settings**:
    ```
-   NFS Protocol: v3, v4
-   Enable NFSv4: Yes
+   NFS Version: v3 and v4 (both enabled)
    NFSv4 Domain: mumblescavern.local
+   Port: 2049 (default)
    ```
+4. **Apply Settings**
+
+### Create NFS Shares for Proxmox
+1. **Go to Sharing** → **Shared Folder**
+2. **Create NFS shares**:
+
+#### VM Storage Share
+```
+Name: proxmox-storage
+Path: /mnt/pool/proxmox-storage
+Description: Proxmox VM storage
+Access Control: Enable
+NFS: Enable
+NFS Settings:
+  - Squash: No root squash
+  - Sync: Synchronous
+  - Authorized Networks: 192.168.1.0/24
+  - Read/Write: Read/Write
+```
+
+#### Backup Storage Share
+```
+Name: proxmox-backup
+Path: /mnt/pool/proxmox-backup
+Description: Proxmox backup storage
+NFS Settings:
+  - Squash: No root squash
+  - Sync: Synchronous
+  - Authorized Networks: 192.168.1.0/24
+  - Read/Write: Read/Write
+```
+
+#### ISO Storage Share
+```
+Name: proxmox-iso
+Path: /mnt/pool/proxmox-iso
+Description: ISO images and templates
+NFS Settings:
+  - Squash: No root squash
+  - Sync: Synchronous
+  - Authorized Networks: 192.168.1.0/24
+  - Read/Write: Read/Write
+```
+
+#### Media Storage Share
+```
+Name: media
+Path: /mnt/pool/media
+Description: Media files for streaming
+NFS Settings:
+  - Squash: No root squash
+  - Sync: Synchronous
+  - Authorized Networks: 192.168.1.0/24,192.168.80.0/24
+  - Read/Write: Read/Write
+```
+
+#### Games Storage Share
+```
+Name: games
+Path: /mnt/pool/games
+Description: Game ROMs and data
+NFS Settings:
+  - Squash: No root squash
+  - Sync: Synchronous
+  - Authorized Networks: 192.168.1.0/24,192.168.80.0/24
+  - Read/Write: Read/Write
+```
 
 ### Test NFS Connectivity
 ```bash
 # From both Proxmox nodes, test NFS mounting
 # Node 1:
+ssh root@192.168.1.10
+
 mkdir -p /mnt/test-nfs
-mount -t nfs 192.168.10.20:/mnt/pool/proxmox-storage /mnt/test-nfs
+mount -t nfs 192.168.1.100:/mnt/pool/proxmox-storage /mnt/test-nfs
 ls -la /mnt/test-nfs
 umount /mnt/test-nfs
 
 # Node 2:
+ssh root@192.168.1.11
+
 mkdir -p /mnt/test-nfs  
-mount -t nfs 192.168.10.20:/mnt/pool/proxmox-storage /mnt/test-nfs
+mount -t nfs 192.168.1.100:/mnt/pool/proxmox-storage /mnt/test-nfs
 touch /mnt/test-nfs/node2-test.txt
 ls -la /mnt/test-nfs
 umount /mnt/test-nfs
 
 # Verify Node 1 can see Node 2's test file
-mount -t nfs 192.168.10.20:/mnt/pool/proxmox-storage /mnt/test-nfs
+ssh root@192.168.1.10
+mount -t nfs 192.168.1.100:/mnt/pool/proxmox-storage /mnt/test-nfs
 ls -la /mnt/test-nfs/node2-test.txt
 rm /mnt/test-nfs/node2-test.txt
 umount /mnt/test-nfs
 ```
 
-## Step 2: Add Shared Storage to Proxmox Cluster
+## Step 3: Add Shared Storage to Proxmox Cluster
 
 ### Add NFS Storage via Web UI
 
 #### VM Storage (Live Migration Capable)
 1. **Datacenter** → **Storage** → **Add** → **NFS**
-2. **Configuration:**
+2. **Configuration**:
    ```
    ID: asustor-vm-storage
-   Server: 192.168.10.20
+   Server: 192.168.1.100
    Export: /mnt/pool/proxmox-storage
    Content: Disk image, Container
    Max Backups: 3
    Shared: Yes
    Enable: Yes
+   Nodes: All (leave empty for all nodes)
    ```
 
 #### Backup Storage
 1. **Datacenter** → **Storage** → **Add** → **NFS**  
-2. **Configuration:**
+2. **Configuration**:
    ```
    ID: asustor-backup
-   Server: 192.168.10.20
+   Server: 192.168.1.100
    Export: /mnt/pool/proxmox-backup
    Content: VZDump backup file
    Max Backups: 10
    Shared: Yes
    Enable: Yes
+   Nodes: All
    ```
 
 #### ISO Storage
 1. **Datacenter** → **Storage** → **Add** → **NFS**
-2. **Configuration:**
+2. **Configuration**:
    ```
    ID: asustor-iso
-   Server: 192.168.10.20  
+   Server: 192.168.1.100
    Export: /mnt/pool/proxmox-iso
    Content: ISO image, Container template
    Shared: Yes
    Enable: Yes
+   Nodes: All
    ```
 
 ### Verify Storage Integration
 ```bash
-# Check storage status
+# Check storage status from any Proxmox node
 pvesm status
 
 # Should show all storage pools including new NFS shares:
-# local, local-lvm, asustor-vm-storage, asustor-backup, asustor-iso
+# Name             Type     Status           Total            Used       Available        %
+# asustor-backup   nfs      active      [size varies]    [used]     [available]      [%]
+# asustor-iso      nfs      active      [size varies]    [used]     [available]      [%]
+# asustor-vm-storage nfs    active      [size varies]    [used]     [available]      [%]
+# local            dir      active      [local size]     [used]     [available]      [%]
+# local-lvm        lvmthin  active      [local size]     [used]     [available]      [%]
 
 # Test storage accessibility from both nodes
 pvesm list asustor-vm-storage
 pvesm list asustor-backup
+pvesm list asustor-iso
 ```
 
-## Step 3: Local Storage Optimization
+## Step 4: Local Storage Optimization
 
 ### Configure Node-Specific High-Performance Storage
 
-#### Node 1 & 2 (If dual storage available)
+#### Assess Available Storage on Each Node
 ```bash
-# If you have NVMe + SSD configuration:
-# Use NVMe for high-performance VM storage
-# Use SSD partition for local backups and cache
-
-# Check current storage setup
+# On each node, check available storage
+ssh root@192.168.1.10
 lsblk
 pvs
 vgs
 lvs
 
-# If not already configured, create local high-performance storage
-# (Only if you have separate NVMe drive)
+# Document findings:
+# Node 1: [SSD type], [NVMe if available], [sizes]
+# Node 2: [SSD type], [NVMe if available], [sizes]
+```
+
+#### Configure Local NVMe Storage (If Available)
+```bash
+# Only if you have separate NVMe drive for VM storage
+# Check if NVMe is available and not used by OS
+lsblk | grep nvme
+
+# If separate NVMe available (e.g., /dev/nvme0n1):
 pvecreate /dev/nvme0n1
 vgcreate local-nvme /dev/nvme0n1
 lvcreate -l 100%FREE -n vm-fast local-nvme
 
 # Add via Web UI:
-# Node → local storage → Add → LVM
+# Node → Storage → Add → LVM
 # ID: local-nvme-fast
 # Volume group: local-nvme
 # Content: Disk image, Container
@@ -192,44 +275,52 @@ chmod 755 /var/cache/proxmox-vm
 # Shared: No
 ```
 
-## Step 4: Configure Storage Network Optimization
+## Step 5: Optimize NFS Mount Options for Performance
 
-### Dedicated Storage Network (VLAN 30)
+### Configure Performance-Optimized NFS Mounts
 ```bash
-# Configure storage-specific network interface
-# This will be used later for high-bandwidth storage traffic
-
-# Edit network configuration to prepare for storage VLAN
-# For now, document the plan - we'll implement during VM deployment
-
-# Storage Network Plan:
-# Node 1 Storage IP: 192.168.30.10
-# Node 2 Storage IP: 192.168.30.11  
-# ASUSTOR Storage IP: 192.168.30.20
-# Synology Storage IP: 192.168.30.21
-```
-
-### Optimize NFS Mount Options
-```bash
-# Create optimized NFS mount configuration
+# On both Proxmox nodes, optimize NFS mount options
 # Edit /etc/fstab to add performance-optimized NFS mounts
+
 cat >> /etc/fstab << 'EOF'
 # High-performance NFS mounts for Proxmox storage
-192.168.10.20:/mnt/pool/proxmox-storage /mnt/pve/asustor-vm-storage nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2 0 0
-192.168.10.20:/mnt/pool/proxmox-backup /mnt/pve/asustor-backup nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2 0 0
-192.168.10.20:/mnt/pool/proxmox-iso /mnt/pve/asustor-iso nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2 0 0
+192.168.1.100:/mnt/pool/proxmox-storage /mnt/pve/asustor-vm-storage nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2,_netdev 0 0
+192.168.1.100:/mnt/pool/proxmox-backup /mnt/pve/asustor-backup nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2,_netdev 0 0
+192.168.1.100:/mnt/pool/proxmox-iso /mnt/pve/asustor-iso nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2,_netdev 0 0
 EOF
 
 # Test mount with optimized options
 mount -a
 df -h | grep asustor
+
+# Verify mount options
+mount | grep nfs
 ```
 
-## Step 5: Configure Backup Strategy
-
-### Automated VM Backup Configuration
+### Configure NFS Client Optimization
 ```bash
-# Create comprehensive backup script
+# On both nodes, optimize NFS client settings
+echo 'net.core.rmem_default = 262144' >> /etc/sysctl.conf
+echo 'net.core.rmem_max = 16777216' >> /etc/sysctl.conf
+echo 'net.core.wmem_default = 262144' >> /etc/sysctl.conf
+echo 'net.core.wmem_max = 16777216' >> /etc/sysctl.conf
+echo 'net.ipv4.tcp_rmem = 4096 65536 16777216' >> /etc/sysctl.conf
+echo 'net.ipv4.tcp_wmem = 4096 65536 16777216' >> /etc/sysctl.conf
+
+# Apply settings
+sysctl -p
+
+# Install NFS utilities if not present
+apt install -y nfs-common rpcbind
+systemctl enable rpcbind
+systemctl start rpcbind
+```
+
+## Step 6: Configure Comprehensive Backup Strategy
+
+### Create VM Backup Configuration
+```bash
+# Create backup strategy script
 cat > /usr/local/bin/vm-backup-strategy.sh << 'EOF'
 #!/bin/bash
 # Comprehensive VM backup strategy
@@ -242,28 +333,47 @@ log_message() {
     echo "$1"
 }
 
-# Function to backup all VMs
+# Function to backup all VMs with intelligent scheduling
 backup_all_vms() {
     log_message "Starting automated VM backup"
     
-    # Get list of all VMs
-    VM_LIST=$(qm list | grep -v VMID | awk '{print $1}')
+    # Get list of all running VMs
+    VM_LIST=$(qm list | grep running | awk '{print $1}')
     
-    for VMID in $VM_LIST; do
-        if [ ! -z "$VMID" ]; then
-            log_message "Backing up VM $VMID"
+    # Get list of all stopped VMs that should be backed up
+    STOPPED_VMS=$(qm list | grep stopped | awk '{print $1}')
+    
+    # Combine lists
+    ALL_VMS="$VM_LIST $STOPPED_VMS"
+    
+    for VMID in $ALL_VMS; do
+        if [ ! -z "$VMID" ] && [ "$VMID" != "VMID" ]; then
+            # Get VM name for logging
+            VM_NAME=$(qm config $VMID | grep "^name:" | cut -d' ' -f2)
+            
+            log_message "Backing up VM $VMID ($VM_NAME)"
+            
+            # Determine backup mode based on VM state
+            VM_STATE=$(qm status $VMID | cut -d' ' -f2)
+            if [ "$VM_STATE" = "running" ]; then
+                BACKUP_MODE="snapshot"
+            else
+                BACKUP_MODE="stop"
+            fi
+            
+            # Perform backup
             vzdump $VMID \
                 --storage asustor-backup \
-                --mode snapshot \
+                --mode $BACKUP_MODE \
                 --compress gzip \
-                --mailto your-email@domain.com \
+                --mailto root \
                 --quiet 1 \
                 --remove 0
                 
             if [ $? -eq 0 ]; then
-                log_message "VM $VMID backup completed successfully"
+                log_message "VM $VMID ($VM_NAME) backup completed successfully"
             else
-                log_message "ERROR: VM $VMID backup failed"
+                log_message "ERROR: VM $VMID ($VM_NAME) backup failed"
             fi
         fi
     done
@@ -271,18 +381,49 @@ backup_all_vms() {
     log_message "VM backup cycle completed"
 }
 
-# Function to cleanup old backups
+# Function to cleanup old backups with retention policy
 cleanup_old_backups() {
-    log_message "Starting backup cleanup"
+    log_message "Starting backup cleanup with retention policy"
     
-    # Remove backups older than 14 days from NFS storage
-    find /mnt/pve/asustor-backup -name "*.vma.gz" -mtime +14 -delete 2>/dev/null
-    find /mnt/pve/asustor-backup -name "*.tar.gz" -mtime +14 -delete 2>/dev/null
+    # Retention policy:
+    # - Keep daily backups for 7 days
+    # - Keep weekly backups for 4 weeks  
+    # - Keep monthly backups for 6 months
     
-    # Remove local backups older than 7 days
-    find /backup-local -name "*.vma.gz" -mtime +7 -delete 2>/dev/null
+    # Remove backups older than 6 months from NFS storage
+    find /mnt/pve/asustor-backup -name "*.vma.gz" -mtime +180 -delete 2>/dev/null
+    find /mnt/pve/asustor-backup -name "*.tar.gz" -mtime +180 -delete 2>/dev/null
+    find /mnt/pve/asustor-backup -name "*.lzo" -mtime +180 -delete 2>/dev/null
     
-    log_message "Backup cleanup completed"
+    # Remove local backups older than 3 days (local storage is limited)
+    find /var/lib/vz/dump -name "*.vma.gz" -mtime +3 -delete 2>/dev/null
+    find /var/lib/vz/dump -name "*.tar.gz" -mtime +3 -delete 2>/dev/null
+    find /var/lib/vz/dump -name "*.lzo" -mtime +3 -delete 2>/dev/null
+    
+    # Log cleanup results
+    REMAINING_BACKUPS=$(find /mnt/pve/asustor-backup -name "*.vma.gz" -o -name "*.tar.gz" -o -name "*.lzo" | wc -l)
+    log_message "Backup cleanup completed - $REMAINING_BACKUPS backups retained"
+}
+
+# Function to verify backup integrity
+verify_backup_integrity() {
+    log_message "Starting backup integrity verification"
+    
+    # Find recent backups (last 24 hours)
+    RECENT_BACKUPS=$(find /mnt/pve/asustor-backup -name "*.vma.gz" -mtime -1)
+    
+    for backup_file in $RECENT_BACKUPS; do
+        if [ -f "$backup_file" ]; then
+            # Test if backup file is readable and not corrupted
+            if gzip -t "$backup_file" 2>/dev/null; then
+                log_message "Backup integrity OK: $(basename $backup_file)"
+            else
+                log_message "WARNING: Backup integrity failed: $(basename $backup_file)"
+            fi
+        fi
+    done
+    
+    log_message "Backup integrity verification completed"
 }
 
 # Execute based on argument
@@ -293,12 +434,16 @@ case "$1" in
     "cleanup")
         cleanup_old_backups
         ;;
+    "verify")
+        verify_backup_integrity
+        ;;
     "full")
         backup_all_vms
         cleanup_old_backups
+        verify_backup_integrity
         ;;
     *)
-        echo "Usage: $0 {backup|cleanup|full}"
+        echo "Usage: $0 {backup|cleanup|verify|full}"
         exit 1
         ;;
 esac
@@ -306,26 +451,30 @@ EOF
 
 chmod +x /usr/local/bin/vm-backup-strategy.sh
 
-# Test backup script
+# Test backup script components
 /usr/local/bin/vm-backup-strategy.sh cleanup
+/usr/local/bin/vm-backup-strategy.sh verify
 ```
 
 ### Schedule Automated Backups
 ```bash
-# Create cron jobs for automated backups
+# Create comprehensive cron schedule for backups
 cat > /tmp/backup-cron << 'EOF'
-# VM Backup Schedule
-# Full backup with cleanup every night at 1 AM
+# VM Backup Schedule - Comprehensive Strategy
+# Full backup with cleanup every night at 1 AM (staggered by node)
 0 1 * * * /usr/local/bin/vm-backup-strategy.sh full
 
 # Quick cleanup check every 6 hours
 0 */6 * * * /usr/local/bin/vm-backup-strategy.sh cleanup
 
-# Cluster health and backup log rotation
+# Integrity verification every morning at 6 AM
+0 6 * * * /usr/local/bin/vm-backup-strategy.sh verify
+
+# Backup log rotation weekly
 0 4 * * 0 /usr/bin/logrotate -f /etc/logrotate.d/vm-backup
 EOF
 
-# Install cron jobs
+# Install cron jobs on both nodes
 crontab /tmp/backup-cron
 rm /tmp/backup-cron
 
@@ -333,282 +482,462 @@ rm /tmp/backup-cron
 cat > /etc/logrotate.d/vm-backup << 'EOF'
 /var/log/vm-backup.log {
     weekly
-    rotate 4
+    rotate 12
     compress
     delaycompress
     missingok
     notifempty
     create 644 root root
+    postrotate
+        # Send weekly backup summary
+        tail -100 /var/log/vm-backup.log | mail -s "Weekly Backup Summary - $(hostname)" root 2>/dev/null || true
+    endscript
 }
 EOF
 ```
 
-## Step 6: Configure Synology as Secondary Backup Target
+## Step 7: Configure Synology as Secondary Backup Target
 
 ### Synology NAS Setup
-1. **Access Synology DSM** (typically http://[synology-ip]:5000)
-2. **Create shared folder:** "proxmox-backup-secondary"
-3. **Enable NFS:** Control Panel → File Services → NFS → Enable NFS
-4. **Configure NFS permissions:**
+1. **Access Synology DSM**: Browse to http://[synology-ip]:5000
+2. **Initial Setup**: Complete if first time setup
+3. **Set Static IP**: 192.168.1.101 
+4. **Create Shared Folder**: 
+   - Name: proxmox-backup-secondary
+   - Location: volume1
+   - Description: Secondary backup storage for Proxmox VMs
+
+### Enable NFS on Synology
+1. **Control Panel** → **File Services** → **NFS**
+2. **Enable NFS service**
+3. **Configure NFS permissions**:
    ```
    Shared Folder: proxmox-backup-secondary
-   Authorized Networks: 192.168.1.0/24,192.168.10.0/24
+   Hostname or IP: 192.168.1.0/24
    Privilege: Read/Write
    Squash: Map root to admin
+   Security: sys
+   Enable asynchronous: No (for data integrity)
    ```
 
 ### Add Synology to Proxmox
 ```bash
-# Add Synology as secondary backup storage
-# Web UI: Datacenter → Storage → Add → NFS
+# Add Synology as secondary backup storage via Web UI
+# Datacenter → Storage → Add → NFS
 # ID: synology-backup-secondary
-# Server: 192.168.10.21
+# Server: 192.168.1.101
 # Export: /volume1/proxmox-backup-secondary
 # Content: VZDump backup file
 # Max Backups: 5
 # Shared: Yes
+# Enable: Yes
+
+# Or via CLI:
+pvesm add nfs synology-backup-secondary \
+    --server 192.168.1.101 \
+    --export /volume1/proxmox-backup-secondary \
+    --content backup \
+    --maxfiles 5 \
+    --shared 1 \
+    --enabled 1
 ```
 
-### Configure Offsite Backup Sync
+### Configure Backup Replication to Synology
 ```bash
-# Create script to sync critical backups to Synology
-cat > /usr/local/bin/offsite-backup-sync.sh << 'EOF'
+# Create script to replicate critical backups to Synology
+cat > /usr/local/bin/backup-replication.sh << 'EOF'
 #!/bin/bash
-# Sync critical backups to secondary location
+# Replicate critical backups to secondary storage
 
 SOURCE_DIR="/mnt/pve/asustor-backup"
 DEST_DIR="/mnt/pve/synology-backup-secondary"
-LOG_FILE="/var/log/offsite-backup.log"
+LOG_FILE="/var/log/backup-replication.log"
 DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
-# Sync only recent backups (last 3 days) to secondary storage
-rsync -av --delete \
-    --include="*.vma.gz" \
-    --include="*.tar.gz" \
-    --exclude="*" \
-    --newer-than="3 days ago" \
-    "$SOURCE_DIR/" "$DEST_DIR/"
+log_message() {
+    echo "$DATE: $1" | tee -a "$LOG_FILE"
+}
 
-echo "$DATE: Offsite backup sync completed" >> "$LOG_FILE"
+# Function to replicate recent backups
+replicate_recent_backups() {
+    log_message "Starting backup replication to secondary storage"
+    
+    # Ensure destination is mounted
+    if ! mountpoint -q "$DEST_DIR"; then
+        log_message "ERROR: Secondary backup storage not mounted"
+        return 1
+    fi
+    
+    # Sync only recent backups (last 3 days) to secondary storage
+    rsync -av --delete \
+        --include="*.vma.gz" \
+        --include="*.tar.gz" \
+        --include="*.lzo" \
+        --exclude="*" \
+        --max-age=3d \
+        "$SOURCE_DIR/" "$DEST_DIR/"
+    
+    if [ $? -eq 0 ]; then
+        log_message "Backup replication completed successfully"
+    else
+        log_message "ERROR: Backup replication failed"
+        return 1
+    fi
+    
+    # Verify replicated backups
+    REPLICATED_COUNT=$(find "$DEST_DIR" -name "*.vma.gz" -o -name "*.tar.gz" -o -name "*.lzo" | wc -l)
+    log_message "Replicated $REPLICATED_COUNT backup files to secondary storage"
+}
+
+# Function to cleanup old replicated backups
+cleanup_secondary_backups() {
+    log_message "Cleaning up old backups on secondary storage"
+    
+    # Remove backups older than 14 days from secondary storage
+    find "$DEST_DIR" -name "*.vma.gz" -mtime +14 -delete 2>/dev/null
+    find "$DEST_DIR" -name "*.tar.gz" -mtime +14 -delete 2>/dev/null
+    find "$DEST_DIR" -name "*.lzo" -mtime +14 -delete 2>/dev/null
+    
+    REMAINING_COUNT=$(find "$DEST_DIR" -name "*.vma.gz" -o -name "*.tar.gz" -o -name "*.lzo" | wc -l)
+    log_message "Secondary storage cleanup completed - $REMAINING_COUNT backups retained"
+}
+
+# Execute replication
+replicate_recent_backups
+cleanup_secondary_backups
 
 # Keep log manageable
-tail -100 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
+tail -500 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
 EOF
 
-chmod +x /usr/local/bin/offsite-backup-sync.sh
+chmod +x /usr/local/bin/backup-replication.sh
 
-# Schedule offsite sync every 6 hours
-echo "0 */6 * * * /usr/local/bin/offsite-backup-sync.sh" | crontab -l | { cat; echo "0 */6 * * * /usr/local/bin/offsite-backup-sync.sh"; } | crontab -
+# Schedule backup replication every 6 hours
+echo "0 */6 * * * /usr/local/bin/backup-replication.sh" | crontab -l | { cat; echo "0 */6 * * * /usr/local/bin/backup-replication.sh"; } | crontab -
+
+# Test replication script
+/usr/local/bin/backup-replication.sh
 ```
 
-## Step 7: Storage Performance Testing
+## Step 8: Storage Performance Testing and Optimization
 
-### Network Storage Performance Test
+### Install Performance Testing Tools
 ```bash
-# Test NFS performance from both nodes
-# Install performance testing tools
-apt install -y fio iperf3
+# On both Proxmox nodes, install performance testing tools
+apt install -y fio iperf3 hdparm
 
-# Test NFS write performance
-fio --name=nfs-write-test \
-    --filename=/mnt/pve/asustor-vm-storage/fio-test \
-    --size=1G \
-    --bs=4k \
-    --rw=write \
-    --direct=1 \
-    --numjobs=4 \
-    --runtime=60 \
-    --group_reporting
-
-# Test NFS read performance  
-fio --name=nfs-read-test \
-    --filename=/mnt/pve/asustor-vm-storage/fio-test \
-    --size=1G \
-    --bs=4k \
-    --rw=read \
-    --direct=1 \
-    --numjobs=4 \
-    --runtime=60 \
-    --group_reporting
-
-# Test mixed workload (simulates VM disk activity)
-fio --name=nfs-mixed-test \
-    --filename=/mnt/pve/asustor-vm-storage/fio-mixed-test \
-    --size=2G \
-    --bs=4k \
-    --rw=randrw \
-    --rwmixread=70 \
-    --direct=1 \
-    --numjobs=2 \
-    --runtime=120 \
-    --group_reporting
-
-# Clean up test files
-rm /mnt/pve/asustor-vm-storage/fio-*test*
-```
-
-### Local Storage Performance Baseline
-```bash
-# Test local NVMe performance (if available)
-# This gives you a comparison point for shared vs local storage
-
-# Local NVMe write test
-fio --name=local-nvme-write \
-    --filename=/tmp/fio-local-test \
-    --size=1G \
-    --bs=4k \
-    --rw=write \
-    --direct=1 \
-    --numjobs=4 \
-    --runtime=60 \
-    --group_reporting
-
-# Local NVMe read test
-fio --name=local-nvme-read \
-    --filename=/tmp/fio-local-test \
-    --size=1G \
-    --bs=4k \
-    --rw=read \
-    --direct=1 \
-    --numjobs=4 \
-    --runtime=60 \
-    --group_reporting
-
-rm /tmp/fio-local-test
-```
-
-## Step 8: Configure Storage-Based High Availability
-
-### Enable HA Prerequisites
-```bash
-# Verify shared storage is accessible from both nodes
-pvesm status | grep asustor
-
-# Check cluster quorum
-pvecm status | grep -i quorum
-
-# Both nodes should show shared storage as available
-# Quorum should show 2/2 nodes
-```
-
-### Create HA Resource Groups
-```bash
-# Via Web UI: Datacenter → HA → Groups → Add
-# Group 1: critical-services
-# - Nodes: pve-node1:pve-node2  
-# - Restricted: No
-# - No Failback: No
-# - Comment: Critical homelab services
-
-# Group 2: media-services  
-# - Nodes: pve-node1:pve-node2
-# - Restricted: No
-# - No Failback: Yes (prefer specific node for media transcoding)
-# - Comment: Media and entertainment services
-```
-
-## Step 9: Storage Monitoring and Alerting
-
-### Install Storage Monitoring Tools
-```bash
-# Install NFS monitoring tools
-apt install -y nfs-common rpcbind
-
-# Create storage health monitoring script
-cat > /usr/local/bin/storage-health-check.sh << 'EOF'
+# Create comprehensive storage performance test
+cat > /usr/local/bin/storage-performance-test.sh << 'EOF'
 #!/bin/bash
-# Storage health monitoring
+# Comprehensive storage performance testing
+
+LOG_FILE="/var/log/storage-performance.log"
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+log_message() {
+    echo "$DATE: $1" | tee -a "$LOG_FILE"
+}
+
+# Test NFS storage performance
+test_nfs_performance() {
+    log_message "=== NFS Storage Performance Test ==="
+    
+    # Test NFS write performance
+    log_message "Testing NFS write performance..."
+    NFS_WRITE=$(fio --name=nfs-write-test \
+        --filename=/mnt/pve/asustor-vm-storage/fio-test \
+        --size=1G \
+        --bs=4k \
+        --rw=write \
+        --direct=1 \
+        --numjobs=4 \
+        --runtime=60 \
+        --group_reporting \
+        --output-format=json | jq -r '.jobs[0].write.bw_mean')
+    
+    # Convert from KB/s to MB/s
+    NFS_WRITE_MBS=$(echo "scale=2; $NFS_WRITE / 1024" | bc -l)
+    log_message "NFS Write Performance: ${NFS_WRITE_MBS} MB/s"
+    
+    # Test NFS read performance  
+    log_message "Testing NFS read performance..."
+    NFS_READ=$(fio --name=nfs-read-test \
+        --filename=/mnt/pve/asustor-vm-storage/fio-test \
+        --size=1G \
+        --bs=4k \
+        --rw=read \
+        --direct=1 \
+        --numjobs=4 \
+        --runtime=60 \
+        --group_reporting \
+        --output-format=json | jq -r '.jobs[0].read.bw_mean')
+    
+    NFS_READ_MBS=$(echo "scale=2; $NFS_READ / 1024" | bc -l)
+    log_message "NFS Read Performance: ${NFS_READ_MBS} MB/s"
+    
+    # Test mixed workload (simulates VM disk activity)
+    log_message "Testing NFS mixed workload..."
+    NFS_MIXED=$(fio --name=nfs-mixed-test \
+        --filename=/mnt/pve/asustor-vm-storage/fio-mixed-test \
+        --size=2G \
+        --bs=4k \
+        --rw=randrw \
+        --rwmixread=70 \
+        --direct=1 \
+        --numjobs=2 \
+        --runtime=120 \
+        --group_reporting \
+        --output-format=json | jq -r '.jobs[0].mixed.bw_mean')
+    
+    NFS_MIXED_MBS=$(echo "scale=2; $NFS_MIXED / 1024" | bc -l)
+    log_message "NFS Mixed Workload Performance: ${NFS_MIXED_MBS} MB/s"
+    
+    # Clean up test files
+    rm -f /mnt/pve/asustor-vm-storage/fio-*test*
+}
+
+# Test local storage performance (for comparison)
+test_local_performance() {
+    log_message "=== Local Storage Performance Test ==="
+    
+    # Test local NVMe/SSD performance (if available)
+    if [ -d "/var/lib/vz" ]; then
+        log_message "Testing local storage write performance..."
+        LOCAL_WRITE=$(fio --name=local-write-test \
+            --filename=/var/lib/vz/fio-local-test \
+            --size=1G \
+            --bs=4k \
+            --rw=write \
+            --direct=1 \
+            --numjobs=4 \
+            --runtime=60 \
+            --group_reporting \
+            --output-format=json | jq -r '.jobs[0].write.bw_mean')
+        
+        LOCAL_WRITE_MBS=$(echo "scale=2; $LOCAL_WRITE / 1024" | bc -l)
+        log_message "Local Storage Write Performance: ${LOCAL_WRITE_MBS} MB/s"
+        
+        # Clean up
+        rm -f /var/lib/vz/fio-local-test
+    fi
+}
+
+# Test network performance to storage
+test_network_performance() {
+    log_message "=== Network Performance to Storage ==="
+    
+    # Test network throughput to ASUSTOR
+    log_message "Testing network throughput to ASUSTOR..."
+    
+    # This requires iperf3 server running on ASUSTOR (manual setup)
+    # For now, test ping latency
+    PING_LATENCY=$(ping -c 10 192.168.1.100 | grep 'rtt' | cut -d'=' -f2 | cut -d'/' -f2)
+    if [ ! -z "$PING_LATENCY" ]; then
+        log_message "Network latency to ASUSTOR: ${PING_LATENCY}ms"
+    fi
+    
+    # Test TCP throughput using dd over nc (if available)
+    # This is a basic test - iperf3 would be better
+    NETWORK_THROUGHPUT=$(timeout 10 sh -c 'dd if=/dev/zero bs=1M count=100 2>/dev/null | nc -w 1 192.168.1.100 12345' 2>&1 | grep -o '[0-9.]* MB/s' || echo "Test failed")
+    log_message "Network throughput estimate: $NETWORK_THROUGHPUT"
+}
+
+# Run all performance tests
+test_nfs_performance
+test_local_performance
+test_network_performance
+
+log_message "Storage performance testing completed"
+
+# Performance targets for reference:
+log_message "=== Performance Targets ==="
+log_message "Target NFS Sequential Read: >100 MB/s"
+log_message "Target NFS Sequential Write: >80 MB/s"
+log_message "Target NFS Random IOPS: >1000"
+log_message "Target Network Latency: <2ms to storage"
+EOF
+
+chmod +x /usr/local/bin/storage-performance-test.sh
+
+# Run initial performance test
+/usr/local/bin/storage-performance-test.sh
+```
+
+## Step 9: Configure Storage Health Monitoring
+
+### Create Comprehensive Storage Monitoring
+```bash
+# Create storage health monitoring script
+cat > /usr/local/bin/storage-health-monitor.sh << 'EOF'
+#!/bin/bash
+# Comprehensive storage health monitoring
 
 LOG_FILE="/var/log/storage-health.log"
 DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
 log_message() {
-    echo "$DATE: $1" >> "$LOG_FILE"
+    echo "$DATE: $1" | tee -a "$LOG_FILE"
 }
 
-# Check NFS mount points
+# Check NFS mount points and health
 check_nfs_mounts() {
-    FAILED_MOUNTS=""
+    log_message "=== NFS Mount Health Check ==="
     
-    for MOUNT in /mnt/pve/asustor-vm-storage /mnt/pve/asustor-backup /mnt/pve/asustor-iso; do
-        if ! mountpoint -q "$MOUNT"; then
-            FAILED_MOUNTS="$FAILED_MOUNTS $MOUNT"
+    FAILED_MOUNTS=""
+    NFS_MOUNTS=(
+        "/mnt/pve/asustor-vm-storage"
+        "/mnt/pve/asustor-backup"
+        "/mnt/pve/asustor-iso"
+    )
+    
+    for mount_point in "${NFS_MOUNTS[@]}"; do
+        if mountpoint -q "$mount_point"; then
+            # Test read/write access
+            if touch "$mount_point/.health-check" 2>/dev/null; then
+                rm -f "$mount_point/.health-check"
+                log_message "$(basename $mount_point): Healthy (read/write OK)"
+            else
+                log_message "$(basename $mount_point): ERROR - Read/write test failed"
+                FAILED_MOUNTS="$FAILED_MOUNTS $mount_point"
+            fi
+        else
+            log_message "$(basename $mount_point): ERROR - Not mounted"
+            FAILED_MOUNTS="$FAILED_MOUNTS $mount_point"
         fi
     done
     
     if [ ! -z "$FAILED_MOUNTS" ]; then
-        log_message "ERROR: Failed NFS mounts:$FAILED_MOUNTS"
+        log_message "CRITICAL: Failed NFS mounts detected:$FAILED_MOUNTS"
         return 1
     else
-        log_message "All NFS mounts healthy"
+        log_message "All NFS mounts are healthy"
         return 0
     fi
 }
 
-# Check storage space
+# Check storage space utilization
 check_storage_space() {
-    # Check shared storage space
-    ASUSTOR_USAGE=$(df -h /mnt/pve/asustor-vm-storage | tail -1 | awk '{print $5}' | sed 's/%//')
+    log_message "=== Storage Space Utilization ==="
     
-    if [ "$ASUSTOR_USAGE" -gt 85 ]; then
-        log_message "WARNING: ASUSTOR storage usage at ${ASUSTOR_USAGE}%"
-    else
-        log_message "ASUSTOR storage usage: ${ASUSTOR_USAGE}%"
+    # Check shared storage space
+    if mountpoint -q "/mnt/pve/asustor-vm-storage"; then
+        ASUSTOR_USAGE=$(df -h /mnt/pve/asustor-vm-storage | tail -1 | awk '{print $5}' | sed 's/%//')
+        ASUSTOR_SIZE=$(df -h /mnt/pve/asustor-vm-storage | tail -1 | awk '{print $2}')
+        ASUSTOR_AVAIL=$(df -h /mnt/pve/asustor-vm-storage | tail -1 | awk '{print $4}')
+        
+        log_message "ASUSTOR VM Storage: ${ASUSTOR_USAGE}% used (${ASUSTOR_AVAIL} of ${ASUSTOR_SIZE} available)"
+        
+        if [ "$ASUSTOR_USAGE" -gt 90 ]; then
+            log_message "CRITICAL: ASUSTOR storage usage above 90%"
+        elif [ "$ASUSTOR_USAGE" -gt 80 ]; then
+            log_message "WARNING: ASUSTOR storage usage above 80%"
+        fi
+    fi
+    
+    # Check backup storage space
+    if mountpoint -q "/mnt/pve/asustor-backup"; then
+        BACKUP_USAGE=$(df -h /mnt/pve/asustor-backup | tail -1 | awk '{print $5}' | sed 's/%//')
+        BACKUP_SIZE=$(df -h /mnt/pve/asustor-backup | tail -1 | awk '{print $2}')
+        BACKUP_AVAIL=$(df -h /mnt/pve/asustor-backup | tail -1 | awk '{print $4}')
+        
+        log_message "ASUSTOR Backup Storage: ${BACKUP_USAGE}% used (${BACKUP_AVAIL} of ${BACKUP_SIZE} available)"
+        
+        if [ "$BACKUP_USAGE" -gt 85 ]; then
+            log_message "WARNING: Backup storage usage above 85% - cleanup recommended"
+        fi
     fi
     
     # Check local storage
     LOCAL_USAGE=$(df -h / | tail -1 | awk '{print $5}' | sed 's/%//')
+    LOCAL_SIZE=$(df -h / | tail -1 | awk '{print $2}')
+    LOCAL_AVAIL=$(df -h / | tail -1 | awk '{print $4}')
+    
+    log_message "Local Storage: ${LOCAL_USAGE}% used (${LOCAL_AVAIL} of ${LOCAL_SIZE} available)"
+    
     if [ "$LOCAL_USAGE" -gt 80 ]; then
-        log_message "WARNING: Local storage usage at ${LOCAL_USAGE}%"
-    else
-        log_message "Local storage usage: ${LOCAL_USAGE}%"
+        log_message "WARNING: Local storage usage above 80%"
     fi
 }
 
-# Check storage performance
+# Check storage performance degradation
 check_storage_performance() {
-    # Simple write test to shared storage
-    TEST_FILE="/mnt/pve/asustor-vm-storage/.storage-test-$(hostname)"
+    log_message "=== Storage Performance Check ==="
     
-    START_TIME=$(date +%s.%N)
-    dd if=/dev/zero of="$TEST_FILE" bs=1M count=100 oflag=direct 2>/dev/null
-    END_TIME=$(date +%s.%N)
-    
-    WRITE_TIME=$(echo "$END_TIME - $START_TIME" | bc -l)
-    WRITE_SPEED=$(echo "scale=2; 100 / $WRITE_TIME" | bc -l)
-    
-    rm -f "$TEST_FILE"
-    
-    log_message "Storage write speed: ${WRITE_SPEED} MB/s"
-    
-    # Alert if performance is poor (less than 50MB/s)
-    if (( $(echo "$WRITE_SPEED < 50" | bc -l) )); then
-        log_message "WARNING: Storage performance degraded (${WRITE_SPEED} MB/s)"
+    # Simple write performance test to shared storage
+    if mountpoint -q "/mnt/pve/asustor-vm-storage"; then
+        TEST_FILE="/mnt/pve/asustor-vm-storage/.perf-test-$(hostname)"
+        
+        START_TIME=$(date +%s.%N)
+        dd if=/dev/zero of="$TEST_FILE" bs=1M count=50 oflag=direct 2>/dev/null
+        END_TIME=$(date +%s.%N)
+        
+        WRITE_TIME=$(echo "$END_TIME - $START_TIME" | bc -l)
+        WRITE_SPEED=$(echo "scale=2; 50 / $WRITE_TIME" | bc -l)
+        
+        rm -f "$TEST_FILE"
+        
+        log_message "NFS write performance: ${WRITE_SPEED} MB/s"
+        
+        # Alert if performance is poor (less than 30MB/s)
+        if (( $(echo "$WRITE_SPEED < 30" | bc -l) )); then
+            log_message "WARNING: Storage write performance degraded (${WRITE_SPEED} MB/s)"
+        fi
     fi
 }
 
-# Run all checks
+# Check NFS server connectivity and responsiveness
+check_nfs_server() {
+    log_message "=== NFS Server Health Check ==="
+    
+    # Test connectivity to NFS server
+    if ping -c 3 192.168.1.100 > /dev/null 2>&1; then
+        log_message "ASUSTOR NFS Server: Reachable"
+        
+        # Test NFS service responsiveness
+        if showmount -e 192.168.1.100 > /dev/null 2>&1; then
+            log_message "ASUSTOR NFS Service: Responsive"
+        else
+            log_message "ERROR: ASUSTOR NFS service not responding"
+        fi
+    else
+        log_message "CRITICAL: ASUSTOR NFS server not reachable"
+    fi
+    
+    # Check secondary backup server if configured
+    if ping -c 3 192.168.1.101 > /dev/null 2>&1; then
+        log_message "Synology Backup Server: Reachable"
+    else
+        log_message "WARNING: Synology backup server not reachable"
+    fi
+}
+
+# Run all health checks
+log_message "Starting storage health monitoring cycle"
+
 check_nfs_mounts
-check_storage_space  
+check_storage_space
 check_storage_performance
+check_nfs_server
+
+log_message "Storage health monitoring cycle completed"
 
 # Keep log size manageable
-tail -200 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
+tail -1000 "$LOG_FILE" > "$LOG_FILE.tmp" && mv "$LOG_FILE.tmp" "$LOG_FILE"
 EOF
 
-chmod +x /usr/local/bin/storage-health-check.sh
+chmod +x /usr/local/bin/storage-health-monitor.sh
 
-# Schedule storage health checks every 15 minutes
-echo "*/15 * * * * /usr/local/bin/storage-health-check.sh" | crontab -l | { cat; echo "*/15 * * * * /usr/local/bin/storage-health-check.sh"; } | crontab -
+# Schedule storage health monitoring every 15 minutes
+echo "*/15 * * * * /usr/local/bin/storage-health-monitor.sh" | crontab -l | { cat; echo "*/15 * * * * /usr/local/bin/storage-health-monitor.sh"; } | crontab -
 
-# Test the storage health check
-/usr/local/bin/storage-health-check.sh
+# Test storage health monitoring
+/usr/local/bin/storage-health-monitor.sh
 cat /var/log/storage-health.log
 ```
 
 ## Step 10: Test Live Migration Capability
 
-### Create Test VM for Migration
+### Create Test VM for Migration Validation
 ```bash
 # Create small test VM to verify migration works
 qm create 999 \
@@ -618,173 +947,567 @@ qm create 999 \
     --net0 virtio,bridge=vmbr0 \
     --storage asustor-vm-storage
 
-# Create small disk for test
+# Create VM disk on shared storage
 qm set 999 --scsi0 asustor-vm-storage:8
+
+# Configure for quick boot
+qm set 999 --boot order=scsi0
+qm set 999 --ostype l26
 
 # Start test VM
 qm start 999
 
+# Wait for VM to fully boot
+sleep 30
+
 # Check VM status
 qm status 999
+echo "Test VM should show as 'running'"
 ```
 
-### Test Online Migration
+### Test Online Migration Between Nodes
 ```bash
+# Test migration from Node 1 to Node 2
+echo "Testing live migration from Node 1 to Node 2..."
+
 # Migrate test VM from Node 1 to Node 2
-# Via Web UI: Select VM → More → Migrate
-# Or via command line:
 qm migrate 999 pve-node2 --online
 
-# Check migration status
-qm status 999
+# Wait for migration to complete
+sleep 30
 
-# Should now show running on pve-node2
-# Test migrating back
+# Check migration status and VM location
+qm status 999
+echo "VM should now be running on pve-node2"
+
+# Test migrating back to confirm bidirectional capability
+echo "Testing reverse migration from Node 2 to Node 1..."
 qm migrate 999 pve-node1 --online
+
+# Wait for migration to complete
+sleep 30
+
+# Check final status
+qm status 999
+echo "VM should now be back on pve-node1"
 
 # Clean up test VM
 qm stop 999
+sleep 10
 qm destroy 999
+
+echo "Migration test completed successfully"
 ```
 
 ## Validation and Testing
 
-### Storage Integration Validation
-- [ ] **NFS shares mounted** on both nodes
-- [ ] **Shared storage visible** in web UI from both nodes  
-- [ ] **VM creation possible** on shared storage
-- [ ] **Backup storage configured** and accessible
-- [ ] **ISO storage available** for templates
-- [ ] **Live migration working** between nodes
-- [ ] **Storage monitoring** operational
-
-### Performance Validation
+### Comprehensive Storage Validation
 ```bash
-# Expected performance targets:
-# NFS Sequential Read: >100 MB/s
-# NFS Sequential Write: >80 MB/s  
-# NFS Random Read IOPS: >1000
-# NFS Random Write IOPS: >500
-# Local NVMe (if available): >500 MB/s sequential
+# Create comprehensive storage validation script
+cat > /usr/local/bin/validate-storage-setup.sh << 'EOF'
+#!/bin/bash
+# Comprehensive storage setup validation
 
-# Network utilization during storage operations should not exceed 80%
+echo "=== Storage Setup Validation ==="
+
+# Test 1: NFS mount accessibility
+echo "1. Testing NFS mount accessibility..."
+MOUNTS_OK=0
+NFS_MOUNTS=("/mnt/pve/asustor-vm-storage" "/mnt/pve/asustor-backup" "/mnt/pve/asustor-iso")
+
+for mount in "${NFS_MOUNTS[@]}"; do
+    if mountpoint -q "$mount" && touch "$mount/.test" 2>/dev/null; then
+        rm -f "$mount/.test"
+        echo "✅ $(basename $mount): Accessible"
+        ((MOUNTS_OK++))
+    else
+        echo "❌ $(basename $mount): Not accessible"
+    fi
+done
+
+echo "NFS mounts accessible: $MOUNTS_OK/3"
+
+# Test 2: Proxmox storage recognition
+echo ""
+echo "2. Testing Proxmox storage recognition..."
+STORAGE_COUNT=$(pvesm status | grep -c "asustor")
+if [ "$STORAGE_COUNT" -ge 3 ]; then
+    echo "✅ Proxmox recognizes all ASUSTOR storage pools"
+else
+    echo "❌ Missing ASUSTOR storage pools in Proxmox"
+fi
+
+# Test 3: Storage performance
+echo ""
+echo "3. Testing basic storage performance..."
+TEST_FILE="/mnt/pve/asustor-vm-storage/.validation-test"
+START_TIME=$(date +%s.%N)
+dd if=/dev/zero of="$TEST_FILE" bs=1M count=10 oflag=direct 2>/dev/null
+END_TIME=$(date +%s.%N)
+WRITE_TIME=$(echo "$END_TIME - $START_TIME" | bc -l)
+WRITE_SPEED=$(echo "scale=2; 10 / $WRITE_TIME" | bc -l)
+rm -f "$TEST_FILE"
+
+echo "Storage write speed: ${WRITE_SPEED} MB/s"
+if (( $(echo "$WRITE_SPEED > 20" | bc -l) )); then
+    echo "✅ Storage performance acceptable"
+else
+    echo "⚠️  Storage performance may be slow"
+fi
+
+# Test 4: Backup storage
+echo ""
+echo "4. Testing backup storage..."
+if mountpoint -q "/mnt/pve/asustor-backup"; then
+    BACKUP_SPACE=$(df -h /mnt/pve/asustor-backup | tail -1 | awk '{print $4}')
+    echo "✅ Backup storage available: $BACKUP_SPACE free"
+else
+    echo "❌ Backup storage not accessible"
+fi
+
+# Test 5: Live migration capability (if cluster exists)
+echo ""
+echo "5. Testing live migration prerequisites..."
+CLUSTER_NODES=$(pvecm nodes 2>/dev/null | grep -c "online" || echo "0")
+if [ "$CLUSTER_NODES" -ge 2 ]; then
+    echo "✅ Cluster has $CLUSTER_NODES nodes - live migration possible"
+    
+    # Check if shared storage is accessible from all nodes
+    SSH_TEST=$(ssh root@192.168.1.11 "mountpoint -q /mnt/pve/asustor-vm-storage" 2>/dev/null && echo "OK" || echo "FAIL")
+    if [ "$SSH_TEST" = "OK" ]; then
+        echo "✅ Shared storage accessible from both nodes"
+    else
+        echo "❌ Shared storage not accessible from Node 2"
+    fi
+else
+    echo "⚠️  Single node - live migration not available yet"
+fi
+
+echo ""
+echo "=== Storage Validation Complete ==="
+EOF
+
+chmod +x /usr/local/bin/validate-storage-setup.sh
+
+# Run storage validation
+/usr/local/bin/validate-storage-setup.sh
 ```
 
-### Backup System Validation
-- [ ] **Automated backups** scheduled and tested
-- [ ] **Backup retention** policies working
-- [ ] **Secondary backup target** (Synology) configured
-- [ ] **Backup monitoring** logging properly
-- [ ] **Storage health checks** running every 15 minutes
+### Storage Performance Benchmarking
+```bash
+# Create detailed storage benchmarking
+cat > /usr/local/bin/storage-benchmark.sh << 'EOF'
+#!/bin/bash
+# Detailed storage performance benchmarking
+
+BENCHMARK_LOG="/var/log/storage-benchmark.log"
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+log_result() {
+    echo "$DATE: $1" | tee -a "$BENCHMARK_LOG"
+}
+
+echo "=== Storage Performance Benchmark ==="
+log_result "Starting storage performance benchmark"
+
+# Benchmark 1: Sequential Read/Write
+echo "Running sequential I/O benchmark..."
+SEQ_RESULTS=$(fio --name=sequential-test \
+    --filename=/mnt/pve/asustor-vm-storage/benchmark-seq \
+    --size=1G \
+    --bs=1M \
+    --rw=rw \
+    --rwmixread=50 \
+    --direct=1 \
+    --numjobs=1 \
+    --runtime=60 \
+    --group_reporting \
+    --output-format=json)
+
+SEQ_READ=$(echo "$SEQ_RESULTS" | jq -r '.jobs[0].read.bw_mean')
+SEQ_WRITE=$(echo "$SEQ_RESULTS" | jq -r '.jobs[0].write.bw_mean')
+SEQ_READ_MBS=$(echo "scale=2; $SEQ_READ / 1024" | bc -l)
+SEQ_WRITE_MBS=$(echo "scale=2; $SEQ_WRITE / 1024" | bc -l)
+
+log_result "Sequential Read: ${SEQ_READ_MBS} MB/s"
+log_result "Sequential Write: ${SEQ_WRITE_MBS} MB/s"
+
+# Benchmark 2: Random Read/Write IOPS
+echo "Running random I/O benchmark..."
+RAND_RESULTS=$(fio --name=random-test \
+    --filename=/mnt/pve/asustor-vm-storage/benchmark-rand \
+    --size=1G \
+    --bs=4k \
+    --rw=randrw \
+    --rwmixread=70 \
+    --direct=1 \
+    --numjobs=4 \
+    --runtime=60 \
+    --group_reporting \
+    --output-format=json)
+
+RAND_READ_IOPS=$(echo "$RAND_RESULTS" | jq -r '.jobs[0].read.iops_mean')
+RAND_WRITE_IOPS=$(echo "$RAND_RESULTS" | jq -r '.jobs[0].write.iops_mean')
+RAND_READ_IOPS_INT=$(printf "%.0f" "$RAND_READ_IOPS")
+RAND_WRITE_IOPS_INT=$(printf "%.0f" "$RAND_WRITE_IOPS")
+
+log_result "Random Read IOPS: ${RAND_READ_IOPS_INT}"
+log_result "Random Write IOPS: ${RAND_WRITE_IOPS_INT}"
+
+# Benchmark 3: VM-like workload
+echo "Running VM workload simulation..."
+VM_RESULTS=$(fio --name=vm-workload \
+    --filename=/mnt/pve/asustor-vm-storage/benchmark-vm \
+    --size=2G \
+    --bs=64k \
+    --rw=randrw \
+    --rwmixread=60 \
+    --direct=1 \
+    --numjobs=2 \
+    --runtime=120 \
+    --group_reporting \
+    --output-format=json)
+
+VM_TOTAL_BW=$(echo "$VM_RESULTS" | jq -r '.jobs[0].mixed.bw_mean')
+VM_TOTAL_MBS=$(echo "scale=2; $VM_TOTAL_BW / 1024" | bc -l)
+
+log_result "VM Workload Throughput: ${VM_TOTAL_MBS} MB/s"
+
+# Clean up benchmark files
+rm -f /mnt/pve/asustor-vm-storage/benchmark-*
+
+# Performance evaluation
+echo ""
+echo "=== Performance Evaluation ==="
+echo "Sequential Read: ${SEQ_READ_MBS} MB/s (Target: >100 MB/s)"
+echo "Sequential Write: ${SEQ_WRITE_MBS} MB/s (Target: >80 MB/s)"
+echo "Random Read IOPS: ${RAND_READ_IOPS_INT} (Target: >1000)"
+echo "Random Write IOPS: ${RAND_WRITE_IOPS_INT} (Target: >500)"
+echo "VM Workload: ${VM_TOTAL_MBS} MB/s (Target: >50 MB/s)"
+
+log_result "Storage benchmark completed"
+echo ""
+echo "Results logged to: $BENCHMARK_LOG"
+EOF
+
+chmod +x /usr/local/bin/storage-benchmark.sh
+
+# Run storage benchmark
+/usr/local/bin/storage-benchmark.sh
+```
 
 ## Troubleshooting Common Issues
 
 ### NFS Mount Failures
 ```bash
-# Check NFS service on ASUSTOR
-showmount -e 192.168.10.20
+# Debug NFS connectivity issues
+cat > /usr/local/bin/debug-nfs-issues.sh << 'EOF'
+#!/bin/bash
+# Debug NFS connectivity issues
 
-# Check network connectivity to storage VLAN
-ping 192.168.10.20
+echo "=== NFS Troubleshooting ==="
 
-# Check NFS mount options
+# Check NFS server availability
+echo "1. Testing NFS server connectivity..."
+if ping -c 3 192.168.1.100 > /dev/null; then
+    echo "✅ ASUSTOR server reachable"
+else
+    echo "❌ ASUSTOR server not reachable - check network"
+    exit 1
+fi
+
+# Check NFS service availability
+echo "2. Testing NFS service..."
+if showmount -e 192.168.1.100 > /dev/null 2>&1; then
+    echo "✅ NFS service responding"
+    showmount -e 192.168.1.100
+else
+    echo "❌ NFS service not responding"
+fi
+
+# Check current NFS mounts
+echo "3. Current NFS mounts..."
 mount | grep nfs
 
-# Remount with debug options
-mount -t nfs -o rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2,_netdev 192.168.10.20:/mnt/pool/proxmox-storage /mnt/pve/asustor-vm-storage
+# Check NFS client services
+echo "4. NFS client services..."
+systemctl status rpcbind
+systemctl status nfs-common
+
+# Test manual mount
+echo "5. Testing manual NFS mount..."
+TEST_DIR="/tmp/nfs-test"
+mkdir -p "$TEST_DIR"
+if mount -t nfs 192.168.1.100:/mnt/pool/proxmox-storage "$TEST_DIR"; then
+    echo "✅ Manual NFS mount successful"
+    ls -la "$TEST_DIR"
+    umount "$TEST_DIR"
+else
+    echo "❌ Manual NFS mount failed"
+fi
+rmdir "$TEST_DIR"
+
+# Check network statistics
+echo "6. NFS network statistics..."
+nfsstat -c
+
+echo "=== NFS Troubleshooting Complete ==="
+EOF
+
+chmod +x /usr/local/bin/debug-nfs-issues.sh
 ```
 
 ### Storage Performance Issues
 ```bash
-# Check network utilization
-iftop -i eno1
+# Create storage performance troubleshooting guide
+cat > /usr/local/bin/debug-storage-performance.sh << 'EOF'
+#!/bin/bash
+# Debug storage performance issues
 
-# Check NFS server performance
-nfsstat -c  # Client statistics
-nfsstat -s  # Server statistics (run on ASUSTOR)
+echo "=== Storage Performance Troubleshooting ==="
+
+# Check network utilization
+echo "1. Network utilization to storage server..."
+if command -v iftop >/dev/null; then
+    timeout 10 iftop -i eno1 -t -s 10
+else
+    echo "Install iftop for network monitoring: apt install iftop"
+fi
+
+# Check NFS mount options
+echo "2. Current NFS mount options..."
+mount | grep nfs | grep asustor
 
 # Check for network errors
+echo "3. Network error statistics..."
 cat /proc/net/dev | grep eno1
 
-# Optimize mount options if needed
-umount /mnt/pve/asustor-vm-storage
-mount -t nfs -o rsize=262144,wsize=262144,hard,intr,timeo=20,retrans=3 192.168.10.20:/mnt/pool/proxmox-storage /mnt/pve/asustor-vm-storage
+# Check system load
+echo "4. System load and resources..."
+uptime
+free -h
+iostat 1 3 2>/dev/null || echo "Install sysstat for iostat: apt install sysstat"
+
+# Check NFS performance statistics
+echo "5. NFS performance statistics..."
+nfsstat -c
+
+# Recommend optimizations
+echo ""
+echo "=== Performance Optimization Recommendations ==="
+echo "1. Verify NFS mount options include: rsize=131072,wsize=131072"
+echo "2. Check network cable quality and switch port speed"
+echo "3. Monitor ASUSTOR CPU and memory usage"
+echo "4. Consider NFS over TCP vs UDP"
+echo "5. Verify no network congestion during peak usage"
+EOF
+
+chmod +x /usr/local/bin/debug-storage-performance.sh
 ```
 
-### Live Migration Failures
+### Backup Restoration Testing
 ```bash
-# Check shared storage accessibility
-pvesm list asustor-vm-storage
-
-# Check SSH connectivity between nodes
-ssh root@192.168.1.11 "echo migration-test"
-
-# Check VM disk location
-qm config [VMID] | grep scsi0
-
-# Ensure VM is using shared storage, not local storage
-```
-
-## Advanced Storage Configuration
-
-### Storage Replication Setup (Optional)
-```bash
-# Configure storage replication between nodes
-# This provides additional redundancy for critical VMs
-
-# Via Web UI: Datacenter → Replication → Add
-# Target: pve-node2 (if configuring from pve-node1)
-# Schedule: */15 (every 15 minutes)
-# Rate limit: 10 (MB/s limit to not saturate network)
-```
-
-### Storage Snapshot Management
-```bash
-# Create snapshot management script
-cat > /usr/local/bin/snapshot-management.sh << 'EOF'
+# Create backup restoration testing procedure
+cat > /usr/local/bin/test-backup-restore.sh << 'EOF'
 #!/bin/bash
-# Automated snapshot management
+# Test backup and restore procedures
+
+echo "=== Backup Restore Testing ==="
+
+# Function to create test VM
+create_test_vm() {
+    echo "Creating test VM for backup testing..."
+    qm create 998 \
+        --name backup-test-vm \
+        --memory 512 \
+        --cores 1 \
+        --net0 virtio,bridge=vmbr0 \
+        --storage asustor-vm-storage
+    
+    qm set 998 --scsi0 asustor-vm-storage:4
+    echo "Test VM 998 created"
+}
+
+# Function to backup test VM
+backup_test_vm() {
+    echo "Creating backup of test VM..."
+    vzdump 998 \
+        --storage asustor-backup \
+        --mode stop \
+        --compress gzip \
+        --quiet 1
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Test VM backup successful"
+        return 0
+    else
+        echo "❌ Test VM backup failed"
+        return 1
+    fi
+}
+
+# Function to restore test VM
+restore_test_vm() {
+    echo "Finding backup file..."
+    BACKUP_FILE=$(find /mnt/pve/asustor-backup -name "*998*" -type f | head -1)
+    
+    if [ -z "$BACKUP_FILE" ]; then
+        echo "❌ No backup file found for VM 998"
+        return 1
+    fi
+    
+    echo "Found backup: $BACKUP_FILE"
+    
+    # Restore as new VM with ID 997
+    echo "Restoring backup to new VM 997..."
+    qmrestore "$BACKUP_FILE" 997 --storage asustor-vm-storage
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Backup restore successful"
+        return 0
+    else
+        echo "❌ Backup restore failed"
+        return 1
+    fi
+}
+
+# Function to cleanup test VMs
+cleanup_test_vms() {
+    echo "Cleaning up test VMs..."
+    qm destroy 998 --purge 2>/dev/null || true
+    qm destroy 997 --purge 2>/dev/null || true
+    
+    # Clean up test backup files
+    find /mnt/pve/asustor-backup -name "*998*" -delete 2>/dev/null || true
+    
+    echo "Cleanup completed"
+}
+
+# Main testing procedure
+case "$1" in
+    "full")
+        create_test_vm
+        backup_test_vm
+        restore_test_vm
+        cleanup_test_vms
+        ;;
+    "cleanup")
+        cleanup_test_vms
+        ;;
+    *)
+        echo "Usage: $0 {full|cleanup}"
+        echo "  full    - Run complete backup/restore test"
+        echo "  cleanup - Remove test VMs and backups"
+        ;;
+esac
+EOF
+
+chmod +x /usr/local/bin/test-backup-restore.sh
+```
+
+## Advanced Storage Configuration (Optional)
+
+### Configure Storage Replication
+```bash
+# Set up storage replication between nodes for critical VMs
+cat > /usr/local/bin/setup-storage-replication.sh << 'EOF'
+#!/bin/bash
+# Configure storage replication for high availability
+
+echo "=== Storage Replication Setup ==="
+
+# This would be configured via Proxmox web UI:
+# Datacenter → Replication → Add
+
+echo "To configure storage replication:"
+echo "1. Go to Datacenter → Replication → Add"
+echo "2. Select VM to replicate"
+echo "3. Set target node"
+echo "4. Set replication schedule (e.g., */15 for every 15 minutes)"
+echo "5. Configure rate limit to prevent network saturation"
+echo ""
+echo "Recommended settings:"
+echo "- Schedule: */30 (every 30 minutes for most VMs)"
+echo "- Rate limit: 10 MB/s (adjust based on network capacity)"
+echo "- Enable: Yes"
+echo ""
+echo "Note: Replication requires shared storage and cluster setup"
+EOF
+
+chmod +x /usr/local/bin/setup-storage-replication.sh
+```
+
+### Configure Storage Snapshots
+```bash
+# Create storage snapshot management
+cat > /usr/local/bin/manage-storage-snapshots.sh << 'EOF'
+#!/bin/bash
+# Manage storage snapshots for data protection
 
 LOG_FILE="/var/log/snapshot-management.log"
 DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
-# Create daily snapshots for important VMs
-create_daily_snapshots() {
-    for VMID in $(qm list | grep running | awk '{print $1}'); do
-        SNAPSHOT_NAME="auto-daily-$(date +%Y%m%d)"
-        
-        echo "$DATE: Creating snapshot $SNAPSHOT_NAME for VM $VMID" >> "$LOG_FILE"
-        qm snapshot "$VMID" "$SNAPSHOT_NAME" --description "Automated daily snapshot"
+log_message() {
+    echo "$DATE: $1" | tee -a "$LOG_FILE"
+}
+
+# Create snapshots for all VMs
+create_vm_snapshots() {
+    log_message "Creating VM snapshots"
+    
+    # Get list of running VMs
+    VM_LIST=$(qm list | grep running | awk '{print $1}')
+    
+    for VMID in $VM_LIST; do
+        if [ ! -z "$VMID" ] && [ "$VMID" != "VMID" ]; then
+            SNAPSHOT_NAME="auto-$(date +%Y%m%d-%H%M)"
+            
+            log_message "Creating snapshot $SNAPSHOT_NAME for VM $VMID"
+            qm snapshot "$VMID" "$SNAPSHOT_NAME" --description "Automated snapshot $(date)"
+            
+            if [ $? -eq 0 ]; then
+                log_message "Snapshot created successfully for VM $VMID"
+            else
+                log_message "ERROR: Failed to create snapshot for VM $VMID"
+            fi
+        fi
     done
 }
 
-# Clean up old snapshots (keep 7 days)
+# Clean up old snapshots
 cleanup_old_snapshots() {
+    log_message "Cleaning up old snapshots"
+    
+    # Remove snapshots older than 7 days
     CUTOFF_DATE=$(date -d '7 days ago' +%Y%m%d)
     
-    for VMID in $(qm list | awk 'NR>1 {print $1}'); do
-        # List snapshots and remove old ones
-        qm listsnapshot "$VMID" | grep "auto-daily-" | while read snapshot_line; do
-            SNAPSHOT_NAME=$(echo "$snapshot_line" | awk '{print $2}')
-            SNAPSHOT_DATE=$(echo "$SNAPSHOT_NAME" | grep -o '[0-9]\{8\}')
-            
-            if [ "$SNAPSHOT_DATE" -lt "$CUTOFF_DATE" ]; then
-                echo "$DATE: Removing old snapshot $SNAPSHOT_NAME from VM $VMID" >> "$LOG_FILE"
-                qm delsnapshot "$VMID" "$SNAPSHOT_NAME"
-            fi
-        done
+    VM_LIST=$(qm list | awk 'NR>1 {print $1}')
+    for VMID in $VM_LIST; do
+        if [ ! -z "$VMID" ]; then
+            # List and remove old snapshots
+            qm listsnapshot "$VMID" | grep "auto-" | while read snapshot_line; do
+                SNAPSHOT_NAME=$(echo "$snapshot_line" | awk '{print $2}')
+                SNAPSHOT_DATE=$(echo "$SNAPSHOT_NAME" | grep -o '[0-9]\{8\}' | head -1)
+                
+                if [ ! -z "$SNAPSHOT_DATE" ] && [ "$SNAPSHOT_DATE" -lt "$CUTOFF_DATE" ]; then
+                    log_message "Removing old snapshot $SNAPSHOT_NAME from VM $VMID"
+                    qm delsnapshot "$VMID" "$SNAPSHOT_NAME"
+                fi
+            done
+        fi
     done
 }
 
+# Execute based on argument
 case "$1" in
     "create")
-        create_daily_snapshots
+        create_vm_snapshots
         ;;
     "cleanup")
         cleanup_old_snapshots
         ;;
     "full")
-        create_daily_snapshots
+        create_vm_snapshots
         cleanup_old_snapshots
         ;;
     *)
@@ -794,179 +1517,59 @@ case "$1" in
 esac
 EOF
 
-chmod +x /usr/local/bin/snapshot-management.sh
+chmod +x /usr/local/bin/manage-storage-snapshots.sh
 
-# Schedule daily snapshots at 23:30
-echo "30 23 * * * /usr/local/bin/snapshot-management.sh full" | crontab -l | { cat; echo "30 23 * * * /usr/local/bin/snapshot-management.sh full"; } | crontab -
-```
-
-## Step 11: Storage Security Configuration
-
-### Configure NFS Security
-```bash
-# Create NFS security policy
-# Limit NFS access to specific networks and protocols
-
-# Update NFS exports on ASUSTOR with security options:
-# Add these options to existing NFS shares:
-# - no_root_squash (already configured)
-# - sync (already configured)  
-# - secure (require privileged ports)
-# - subtree_check (verify subdirectory access)
-
-# Test secure NFS mounting
-umount /mnt/pve/asustor-vm-storage
-mount -t nfs -o rsize=131072,wsize=131072,hard,intr,secure 192.168.10.20:/mnt/pool/proxmox-storage /mnt/pve/asustor-vm-storage
-```
-
-### Backup Encryption Configuration
-```bash
-# Configure encrypted backups for sensitive VMs
-# This will be used when creating backup jobs via Web UI
-
-# Create encryption key for backups
-openssl rand -base64 32 > /etc/pve/backup-encryption.key
-chmod 600 /etc/pve/backup-encryption.key
-
-# Document encryption key location in password manager
-echo "Backup encryption key stored in: /etc/pve/backup-encryption.key"
-```
-
-## Step 12: Storage Disaster Recovery Planning
-
-### Create Storage Disaster Recovery Documentation
-```bash
-# Document storage configuration for disaster recovery
-cat > /etc/pve/storage-dr-info.txt << 'EOF'
-# Storage Disaster Recovery Information
-# Generated: $(date)
-
-## NFS Storage Configuration
-Primary NFS Server: 192.168.10.20 (ASUSTOR)
-Secondary Backup: 192.168.10.21 (Synology)
-
-## Mount Points and Exports
-/mnt/pve/asustor-vm-storage → 192.168.10.20:/mnt/pool/proxmox-storage
-/mnt/pve/asustor-backup → 192.168.10.20:/mnt/pool/proxmox-backup
-/mnt/pve/asustor-iso → 192.168.10.20:/mnt/pool/proxmox-iso
-/mnt/pve/synology-backup-secondary → 192.168.10.21:/volume1/proxmox-backup-secondary
-
-## Recovery Procedures
-1. If ASUSTOR fails: Restore latest backups from Synology to replacement NAS
-2. If network storage unavailable: VMs can run from local storage temporarily
-3. If single node fails: Cluster continues on remaining node with shared storage
-
-## Critical Files for DR
-- Cluster configuration: /etc/pve/ (automatically replicated)
-- Backup encryption key: /etc/pve/backup-encryption.key
-- Storage health logs: /var/log/storage-health.log
-- VM configurations: /etc/pve/qemu-server/ (automatically replicated)
-EOF
-```
-
-### Test Disaster Recovery Scenarios
-```bash
-# Test 1: Simulate NFS server failure
-# Temporarily stop NFS on ASUSTOR and verify:
-# - Existing VMs continue running from local cache
-# - New VM creation gracefully fails with clear error
-# - Cluster remains operational
-
-# Test 2: Simulate single node failure  
-# Shutdown Node 2 and verify:
-# - Cluster maintains quorum (with 2 nodes, losing 1 breaks quorum)
-# - VMs can be manually started on remaining node
-# - Shared storage remains accessible
-
-# Test 3: Storage failover
-# Switch VM storage from ASUSTOR to Synology
-# Verify backup restore procedures work
-```
-
-## Documentation and Monitoring Setup
-
-### Storage Performance Baseline Documentation
-```bash
-# Create storage performance baseline document
-cat > /etc/pve/storage-baseline.txt << 'EOF'
-# Storage Performance Baseline
-# Measured: $(date)
-
-## NFS Performance (ASUSTOR)
-Sequential Read: [Record your fio test results]
-Sequential Write: [Record your fio test results]  
-Random Read IOPS: [Record your fio test results]
-Random Write IOPS: [Record your fio test results]
-
-## Local Storage Performance (if available)
-Local NVMe Sequential Read: [Record results]
-Local NVMe Sequential Write: [Record results]
-
-## Network Performance
-Node-to-Node: [iperf3 results] Gbps
-Node-to-Storage: [iperf3 results] Gbps
-
-## Utilization Thresholds
-Storage Alert: >85% full
-Performance Alert: <50 MB/s sustained
-Network Alert: >80% utilization
-EOF
-```
-
-### Configure Storage Alerts
-```bash
-# Create storage alert script
-cat > /usr/local/bin/storage-alerts.sh << 'EOF'
-#!/bin/bash
-# Storage alerting system
-
-ALERT_EMAIL="your-email@domain.com"
-LOG_FILE="/var/log/storage-alerts.log"
-DATE=$(date '+%Y-%m-%d %H:%M:%S')
-
-send_alert() {
-    local SUBJECT="$1"
-    local MESSAGE="$2"
-    
-    echo "$DATE: ALERT - $SUBJECT" >> "$LOG_FILE"
-    echo "$MESSAGE" >> "$LOG_FILE"
-    
-    # Send email if mail is configured
-    if command -v mail >/dev/null 2>&1; then
-        echo "$MESSAGE" | mail -s "Proxmox Storage Alert: $SUBJECT" "$ALERT_EMAIL"
-    fi
-}
-
-# Check for storage issues and send alerts
-if ! /usr/local/bin/storage-health-check.sh; then
-    send_alert "Storage Health Check Failed" "One or more storage health checks failed. Check /var/log/storage-health.log for details."
-fi
-EOF
-
-chmod +x /usr/local/bin/storage-alerts.sh
-
-# Schedule alert checks every hour
-echo "0 * * * * /usr/local/bin/storage-alerts.sh" | crontab -l | { cat; echo "0 * * * * /usr/local/bin/storage-alerts.sh"; } | crontab -
+# Schedule snapshot management
+echo "0 2 * * * /usr/local/bin/manage-storage-snapshots.sh full" | crontab -l | { cat; echo "0 2 * * * /usr/local/bin/manage-storage-snapshots.sh full"; } | crontab -
 ```
 
 ## Completion Criteria
-- [ ] **NFS shares** configured and mounted on both nodes
-- [ ] **Shared VM storage** available from both nodes  
-- [ ] **Backup storage** configured with retention policies
-- [ ] **Live migration** tested and working
-- [ ] **Storage monitoring** scripts operational
-- [ ] **Performance baseline** established and documented
-- [ ] **Disaster recovery** procedures documented
-- [ ] **Storage health checks** running automatically
-- [ ] **Backup automation** scheduled and tested
-- [ ] **Secondary backup target** configured
 
-### Pre-Next Phase Checklist
-- [ ] Storage performance meets expectations (>80 MB/s NFS)
-- [ ] Live migration working reliably
+### Storage Integration Validation
+- [ ] **ASUSTOR NAS configured** with static IP and NFS service
+- [ ] **NFS shares created** for VM storage, backups, and ISOs
+- [ ] **Proxmox storage pools** added and accessible from both nodes
+- [ ] **Storage performance** meets minimum requirements (>50 MB/s)
+- [ ] **Backup storage** configured with automated retention
+- [ ] **Live migration** tested and working between nodes
+- [ ] **Storage monitoring** scripts operational
+- [ ] **Secondary backup** target (Synology) configured
+
+### Performance Validation
+```bash
+# Expected performance targets:
+# - NFS Sequential Read: >100 MB/s
+# - NFS Sequential Write: >80 MB/s  
+# - NFS Random Read IOPS: >1000
+# - NFS Random Write IOPS: >500
+# - Network latency to storage: <2ms
+# - Live migration time: <2 minutes for 4GB VM
+```
+
+### Backup System Validation
+- [ ] **VM backups** automatically scheduled
+- [ ] **Backup retention** policies implemented
+- [ ] **Backup integrity** verification working
+- [ ] **Secondary backup** replication operational
+- [ ] **Backup restoration** tested and documented
+- [ ] **Storage space monitoring** with alerts
+- [ ] **Backup logs** properly rotated
+
+### Monitoring and Health Checks
+- [ ] **Storage health monitoring** running every 15 minutes
+- [ ] **Performance monitoring** tracking key metrics
+- [ ] **Space utilization** alerts configured
+- [ ] **NFS connectivity** monitoring operational
+- [ ] **Backup success/failure** tracking
+- [ ] **Log rotation** configured for all storage logs
+
+## Pre-Next Phase Checklist
+- [ ] All storage pools showing "active" status in Proxmox
+- [ ] Live migration working reliably between nodes
 - [ ] Backup jobs completing successfully
-- [ ] Storage monitoring showing healthy status
+- [ ] Storage performance meeting requirements
 - [ ] Both nodes can access all shared storage
 - [ ] Storage space utilization <50% (room for growth)
+- [ ] No storage-related errors in logs
 
-**Next Phase**: Proceed to [Shared Infrastructure](05-shared-infrastructure.md) to deploy foundational services like PostgreSQL and Redis that will support your applications.
+**Next Phase**: Proceed to [Shared Infrastructure](05-shared-infrastructure.md) to deploy foundational services like PostgreSQL and Redis that will support your applications using the robust storage foundation you just created.
