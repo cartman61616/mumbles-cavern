@@ -55,13 +55,19 @@ wget https://www.proxmox.com/en/downloads/category/iso-images-pve
 # Current version: proxmox-ve_8.2-1.iso (verify latest on website)
 ```
 
-### Create Bootable USB Drives
-- Use Rufus (Windows) or `dd` (Linux/Mac) 
-- Create 4 identical USB drives or use one drive for sequential installation
+### Upload ISO to JetKVM Storage
+- Upload Proxmox VE ISO to JetKVM's virtual storage
 - Verify SHA256 checksum of downloaded ISO
+- Configure JetKVM to mount ISO as virtual CD/DVD drive
 
-### Prepare Installation Notes
+### Prepare JetKVM and Installation Notes
 ```
+JetKVM Setup:
+- Connect JetKVM to Node 1 via USB-C/HDMI
+- Upload Proxmox ISO to JetKVM storage
+- Configure virtual CD/DVD mount
+- Verify remote KVM access working
+
 Each node will need:
 - Root password: [Use strong password, document in password manager]
 - Email: your-email@domain.com
@@ -75,8 +81,9 @@ Each node will need:
 ### Physical Setup
 1. Connect Node 1 to UniFi Flex Mini switch
 2. Connect Anker Prime USB-C to barrel jack power
-3. Verify power LED and network activity
-4. Connect keyboard, mouse, monitor via USB/HDMI
+3. Connect JetKVM to Node 1 (USB-C + HDMI)
+4. Verify power LED and network activity
+5. Access Node 1 remotely via JetKVM web interface
 
 ### BIOS Configuration (Final Check)
 1. Boot and press F2/F12 to enter BIOS
@@ -102,10 +109,11 @@ Each node will need:
 
 ## Step 4: Proxmox Installation
 
-### Boot from USB
-1. Insert Proxmox USB drive
-2. Boot and select "Install Proxmox VE"
-3. Accept license agreement
+### Boot from JetKVM Virtual Storage
+1. Mount Proxmox ISO via JetKVM virtual CD/DVD
+2. Power cycle Node 1 via JetKVM or physically
+3. Boot and select "Install Proxmox VE" from virtual CD/DVD
+4. Accept license agreement
 
 ### Target Disk Selection (CRITICAL)
 ```
@@ -139,7 +147,7 @@ Email: your-email@domain.com
 1. Verify all settings on summary screen
 2. Click "Install"
 3. Installation takes 5-10 minutes
-4. Remove USB drive when prompted
+4. Unmount virtual CD/DVD via JetKVM when prompted
 5. Reboot
 
 ## Step 5: Initial Configuration
@@ -442,6 +450,14 @@ ip route show
 # Test DNS resolution
 nslookup google.com
 ```
+
+### JetKVM-Specific Troubleshooting
+- **JetKVM not accessible**: Verify JetKVM power and network connectivity
+- **Virtual CD/DVD not mounting**: Check ISO file integrity and JetKVM storage
+- **Boot priority issues**: Ensure UEFI boot order includes virtual CD/DVD
+- **Remote console lag**: Check network latency between management machine and JetKVM
+- **Installation media not detected**: Verify ISO is properly mounted in JetKVM interface
+- **Power control issues**: Use JetKVM power management or physical power cycle
 
 ## Completion Criteria
 - [ ] Proxmox VE installed and accessible via web UI
