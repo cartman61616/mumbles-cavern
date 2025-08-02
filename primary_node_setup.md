@@ -121,7 +121,7 @@ If only one drive available:
 
 ### Network Configuration
 ```
-IP Address: 192.168.1.10
+IP Address: 192.168.10.10
 Netmask: 255.255.255.0 (/24)
 Gateway: 192.168.1.1 (your UDM Pro)
 DNS: 192.168.1.1
@@ -145,15 +145,15 @@ Email: your-email@domain.com
 ## Step 5: Initial Configuration
 
 ### First Boot and Web Access
-1. Note the IP address shown on console: https://192.168.1.10:8006
-2. From your management computer, browse to https://192.168.1.10:8006
+1. Note the IP address shown on console: https://192.168.10.10:8006
+2. From your management computer, browse to https://192.168.10.10:8006
 3. Accept self-signed certificate warning
 4. Login: root / [your password]
 
 ### Update System
 ```bash
 # SSH to node or use web shell
-ssh root@192.168.1.10
+ssh root@192.168.10.10
 
 # Update package lists
 apt update
@@ -204,7 +204,7 @@ iface eno1 inet manual
 
 auto vmbr0
 iface vmbr0 inet static
-    address 192.168.1.10/24
+    address 192.168.10.10/24
     gateway 192.168.1.1
     bridge-ports eno1
     bridge-stp off
@@ -257,7 +257,7 @@ echo "ssh-rsa AAAAB3NzaC1yc2E... your-email@domain.com" >> ~/.ssh/authorized_key
 chmod 600 ~/.ssh/authorized_keys
 
 # Test SSH key login from your workstation
-# ssh root@192.168.1.10
+# ssh root@192.168.10.10
 ```
 
 ## Step 8: Configure Backup Storage
@@ -375,7 +375,7 @@ dmesg | grep -i dmar
 ```
 
 ### Web UI Functionality Test
-- [ ] Login successful at https://192.168.1.10:8006
+- [ ] Login successful at https://192.168.10.10:8006
 - [ ] All system information displayed correctly
 - [ ] Storage pools visible and healthy
 - [ ] Network configuration matches plan
@@ -407,7 +407,7 @@ Save these details in your password manager or documentation system:
 
 ```
 Node 1 Configuration:
-- IP Address: 192.168.1.10
+- IP Address: 192.168.10.10
 - Root Password: [password]
 - SSH Keys: [location of private key]
 - Storage Configuration: [local storage + NVMe pool]
