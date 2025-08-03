@@ -127,9 +127,9 @@ This guide walks you through deploying a complete Proxmox homelab cluster using 
 
 ### Phase Completion Validation
 Each phase includes validation steps. Mark completion:
-- [ ] Pre-Phase 0: BIOS Updated, CPU frequencies normal
-- [ ] Phase 0.5: VLANs configured, networking tested
-- [ ] Phase 1: Node 1 accessible via web UI
+- [x] Pre-Phase 0: BIOS Updated, CPU frequencies normal
+- [x] Phase 0.5: VLANs configured, networking tested
+- [🔄] Phase 1: Proxmox installed, troubleshooting inter-VLAN routing
 - [ ] Phase 2: Cluster formed, both nodes visible
 - [ ] Phase 3: Storage accessible, NFS mounted
 - [ ] Phase 4: Shared services healthy and accessible
