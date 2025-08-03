@@ -22,10 +22,10 @@ Use the same installation process as Node 1 with these network differences:
 
 ```
 Network Configuration for Node 2:
-IP Address: 192.168.1.11
+IP Address: 192.168.10.11
 Netmask: 255.255.255.0 (/24)
-Gateway: 192.168.1.1
-DNS: 192.168.1.1
+Gateway: 192.168.10.1
+DNS: 192.168.10.1
 Hostname: pve-node2.mumblescavern.local
 ```
 
@@ -36,11 +36,45 @@ Root Password: [SAME password as Node 1 for cluster compatibility]
 Email: your-email@domain.com
 ```
 
-### Post-Installation Updates
+### Post-Installation Network Configuration
+After Proxmox installation, configure the network bridge for VLAN-aware operation:
+
 ```bash
 # SSH to Node 2 
-ssh root@192.168.1.11
+ssh root@192.168.10.11
 
+# Edit network configuration for VLAN-aware bridge
+nano /etc/network/interfaces
+
+# Configure network interfaces:
+auto lo
+iface lo inet loopback
+
+iface eno1 inet manual
+
+auto vmbr0
+iface vmbr0 inet static
+    address 192.168.10.11/24
+    gateway 192.168.10.1
+    bridge-ports eno1
+    bridge-stp off
+    bridge-fd 0
+    bridge-vlan-aware yes
+    bridge-vids 2-4094
+
+# Apply network configuration
+ifreload -a
+
+# Test connectivity
+ping 192.168.10.1   # Test VLAN 10 gateway
+ping 8.8.8.8        # Test internet
+ping google.com     # Test DNS
+```
+
+**Important**: Ensure the gateway matches the VLAN subnet. Common mistake is using `192.168.0.1` (Default VLAN) when node is on `192.168.10.x` (Management VLAN).
+
+### Post-Installation Updates
+```bash
 # Update system
 apt update && apt full-upgrade -y
 
@@ -88,7 +122,7 @@ lvcreate -l 100%FREE -n vm-data vm-storage
 ### From Node 1 (Primary)
 ```bash
 # SSH to Node 1
-ssh root@192.168.1.10
+ssh root@192.168.10.10
 
 # Create cluster
 pvecm create mumbles-cluster
@@ -108,10 +142,10 @@ pvecm status
 ### From Node 2 (Join cluster)
 ```bash
 # SSH to Node 2
-ssh root@192.168.1.11
+ssh root@192.168.10.11
 
 # Join the cluster (run from Node 2)
-pvecm add 192.168.1.10
+pvecm add 192.168.10.10
 
 # You'll be prompted for Node 1's root password
 # This establishes cluster communication and shared configuration
@@ -119,9 +153,9 @@ pvecm add 192.168.1.10
 
 **Expected Output:**
 ```
-Please enter superuser (root) password for '192.168.1.10': [enter password]
-Establishing API connection with host '192.168.1.10'
-The authenticity of host '192.168.1.10' can't be established.
+Please enter superuser (root) password for '192.168.10.10': [enter password]
+Establishing API connection with host '192.168.10.10'
+The authenticity of host '192.168.10.10' can't be established.
 X509 SHA256 key fingerprint is [fingerprint]
 Are you sure you want to continue connecting (yes/no)? yes
 Login succeeded.
@@ -186,19 +220,54 @@ df -h /etc/pve
 3. Or skip for now (can configure later)
 
 #### Update Repositories
-1. **Node** → **Updates** → **Repositories**
-2. Add Proxmox Enterprise repo (if you have subscription)
-3. Or add No-Subscription repo for free updates:
+
+**Manual Learning Approach for Node 1:**
+1. SSH to Node 1 for hands-on learning:
    ```bash
-   # On both nodes:
-   echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > /etc/apt/sources.list.d/pve-no-subscription.list
+   ssh root@192.168.10.10
    
-   # Comment out enterprise repo
-   sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/pve-enterprise.list
+   # Check what repos are currently configured
+   ls -la /etc/apt/sources.list.d/
+   cat /etc/apt/sources.list.d/pve-enterprise.list
+   cat /etc/apt/sources.list.d/ceph.list
    
-   # Update package lists
+   # Comment out enterprise repo (manual edit)
+   nano /etc/apt/sources.list.d/pve-enterprise.list
+   # Add # to comment out the deb line
+   
+   # Comment out ceph enterprise repo (manual edit)
+   nano /etc/apt/sources.list.d/ceph.list
+   # Add # to comment out the deb line
+   
+   # Create no-subscription repo (manual)
+   nano /etc/apt/sources.list.d/pve-no-subscription.list
+   # Add: deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
+   
+   # Test the fix
    apt update
+   apt full-upgrade -y
    ```
+
+**Automated Script for Nodes 2-4:**
+After learning the manual process, create automation for remaining nodes:
+   ```bash
+   # Create automation script for remaining nodes
+   cat > /tmp/fix-repos.sh << 'EOF'
+   #!/bin/bash
+   sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/pve-enterprise.list
+   sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/ceph.list
+   echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > /etc/apt/sources.list.d/pve-no-subscription.list
+   apt update && apt full-upgrade -y
+   EOF
+   
+   chmod +x /tmp/fix-repos.sh
+   
+   # Deploy to remaining nodes:
+   scp /tmp/fix-repos.sh root@192.168.10.11:/tmp/
+   ssh root@192.168.10.11 "/tmp/fix-repos.sh"
+   ```
+
+This gives you both: deep understanding from manual work + efficiency for scale!
 
 #### Cluster Resource Management
 1. **Datacenter** → **Resource Mappings**
@@ -339,7 +408,7 @@ ssh root@192.168.1.11 "echo 'Migration test successful'"
    Action: ACCEPT  
    Protocol: tcp
    Dest. port: 22
-   Source: 192.168.1.0/24,192.168.10.0/24,192.168.90.0/24
+   Source: 192.168.10.0/24,192.168.20.0/24,192.168.90.0/24
    Comment: SSH access from management networks
 
 2. Proxmox Web UI:
@@ -347,7 +416,7 @@ ssh root@192.168.1.11 "echo 'Migration test successful'"
    Action: ACCEPT
    Protocol: tcp  
    Dest. port: 8006
-   Source: 192.168.1.0/24,192.168.10.0/24,192.168.90.0/24
+   Source: 192.168.10.0/24,192.168.20.0/24,192.168.90.0/24
    Comment: Proxmox web interface
 
 3. Cluster Communication:
@@ -355,7 +424,7 @@ ssh root@192.168.1.11 "echo 'Migration test successful'"
    Action: ACCEPT
    Protocol: udp
    Dest. port: 5404-5405
-   Source: 192.168.1.10,192.168.1.11
+   Source: 192.168.10.10,192.168.10.11
    Comment: Corosync cluster communication
 
 4. Proxmox Cluster Communication:
@@ -363,7 +432,7 @@ ssh root@192.168.1.11 "echo 'Migration test successful'"
    Action: ACCEPT
    Protocol: tcp
    Dest. port: 22,5900-5999,8006
-   Source: 192.168.1.10,192.168.1.11  
+   Source: 192.168.10.10,192.168.10.11  
    Comment: Proxmox inter-node communication
 
 5. Node Exporter (Monitoring):
@@ -371,7 +440,7 @@ ssh root@192.168.1.11 "echo 'Migration test successful'"
    Action: ACCEPT
    Protocol: tcp
    Dest. port: 9100
-   Source: 192.168.1.0/24,192.168.20.0/24
+   Source: 192.168.10.0/24,192.168.20.0/24
    Comment: Prometheus monitoring access
 ```
 
@@ -382,13 +451,13 @@ ssh root@192.168.1.11 "echo 'Migration test successful'"
 ssh-keygen -t rsa -b 4096 -f /root/.ssh/cluster_rsa -N ""
 
 # Copy public key to Node 2
-ssh-copy-id -i /root/.ssh/cluster_rsa.pub root@192.168.1.11
+ssh-copy-id -i /root/.ssh/cluster_rsa.pub root@192.168.10.11
 
 # Copy private key to Node 2 for bidirectional migration
-scp /root/.ssh/cluster_rsa root@192.168.1.11:/root/.ssh/
+scp /root/.ssh/cluster_rsa root@192.168.10.11:/root/.ssh/
 
 # Test passwordless SSH both directions
-ssh -i /root/.ssh/cluster_rsa root@192.168.1.11 "hostname"
+ssh -i /root/.ssh/cluster_rsa root@192.168.10.11 "hostname"
 # Should return: pve-node2
 ```
 
@@ -523,22 +592,22 @@ cat /etc/pve/corosync.conf
 ```bash
 # Test connectivity between nodes
 # From Node 1:
-ping 192.168.1.11
+ping 192.168.10.11
 
 # From Node 2:
-ping 192.168.1.10
+ping 192.168.10.10
 
 # Test cluster port connectivity
 # From Node 1:
-nc -zv 192.168.1.11 5405
+nc -zv 192.168.10.11 5405
 
 # Should show: Connection succeeded
 ```
 
 ### Web UI Cluster Management Test
 1. **Access both web UIs:**
-   - Node 1: https://192.168.1.10:8006
-   - Node 2: https://192.168.1.11:8006
+   - Node 1: https://192.168.10.10:8006
+   - Node 2: https://192.168.10.11:8006
 
 2. **Test cluster-wide management:**
    - Login to Node 1's web UI
@@ -571,10 +640,10 @@ pvesh get /cluster/resources --type node
 # If Node 2 fails to join cluster:
 
 # Check network connectivity
-ping 192.168.1.10  # From Node 2
+ping 192.168.10.10  # From Node 2
 
 # Check SSH connectivity  
-ssh root@192.168.1.10 "echo test"
+ssh root@192.168.10.10 "echo test"
 
 # Check if cluster service is running on Node 1
 systemctl status pve-cluster
@@ -646,7 +715,7 @@ sysctl -p
 
 # Test network performance between nodes
 # On Node 2: iperf3 -s
-# On Node 1: iperf3 -c 192.168.1.11 -t 30
+# On Node 1: iperf3 -c 192.168.10.11 -t 30
 # Should achieve close to 1Gbps
 ```
 
@@ -658,9 +727,9 @@ Save in your password manager or documentation system:
 ```
 Cluster Configuration:
 - Cluster Name: mumbles-cluster
-- Node 1: 192.168.1.10 (pve-node1.mumblescavern.local)
-- Node 2: 192.168.1.11 (pve-node2.mumblescavern.local)  
-- Cluster Network: 192.168.1.0/24
+- Node 1: 192.168.10.10 (pve-node1.mumblescavern.local)
+- Node 2: 192.168.10.11 (pve-node2.mumblescavern.local)  
+- Cluster Network: 192.168.10.0/24
 - Quorum: 2 nodes required
 - Migration Network: default (192.168.1.0/24)
 - Backup Schedule: Daily at 2:00 AM

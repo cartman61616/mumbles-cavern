@@ -36,6 +36,7 @@ This repository contains detailed documentation for deploying a complete homelab
 | [`external_access.md`](external_access.md) | Remote access and security setup |
 | [`gaming_setup.md`](gaming_setup.md) | Gaming optimization and GPU passthrough |
 | [`shared_infrastructure.md`](shared_infrastructure.md) | Common infrastructure components |
+| [`cavern_learnings.md`](cavern_learnings.md) | Lessons learned, troubleshooting, and optimization insights |
 
 
 ## 🚀 Quick Start
@@ -83,7 +84,7 @@ Track your deployment progress using this checklist:
 - [x] **Hardware Preparation** - BIOS updates and optimization complete
 - [x] **Network Infrastructure** - VLANs, QoS, and switch configuration complete! 🚀 ([Progress](network_setup_progress.md))
 - [x] **Primary Node** - Proxmox installed and inter-VLAN routing working! 🚀
-- [ ] **Cluster Formation** - All nodes joined to cluster
+- [x] **Cluster Formation** - 2-node cluster created and operational! 🚀
 - [ ] **Storage Integration** - TrueNAS and local storage configured
 - [ ] **Essential Services** - Core homelab services deployed
 - [ ] **External Access** - Remote connectivity established
