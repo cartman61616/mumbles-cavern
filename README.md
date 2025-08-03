@@ -82,7 +82,7 @@ Track your deployment progress using this checklist:
 ### Phase Status
 - [x] **Hardware Preparation** - BIOS updates and optimization complete
 - [x] **Network Infrastructure** - VLANs, QoS, and switch configuration complete! 🚀 ([Progress](network_setup_progress.md))
-- [ ] **Primary Node** - First Proxmox node operational
+- [🔄] **Primary Node** - Proxmox installed, troubleshooting inter-VLAN routing
 - [ ] **Cluster Formation** - All nodes joined to cluster
 - [ ] **Storage Integration** - TrueNAS and local storage configured
 - [ ] **Essential Services** - Core homelab services deployed
