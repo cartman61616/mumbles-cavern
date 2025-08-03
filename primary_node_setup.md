@@ -131,8 +131,8 @@ If only one drive available:
 ```
 IP Address: 192.168.10.10
 Netmask: 255.255.255.0 (/24)
-Gateway: 192.168.1.1 (your UDM Pro)
-DNS: 192.168.1.1
+Gateway: 192.168.0.1 (your UDM Pro)
+DNS: 192.168.0.1
 Hostname: pve-node1.mumblescavern.local
 ```
 
@@ -213,7 +213,7 @@ iface eno1 inet manual
 auto vmbr0
 iface vmbr0 inet static
     address 192.168.10.10/24
-    gateway 192.168.1.1
+    gateway 192.168.0.1
     bridge-ports eno1
     bridge-stp off
     bridge-fd 0
@@ -227,7 +227,7 @@ ifreload -a
 ### Web UI Network Configuration
 1. Go to **System** → **Network**
 2. Verify vmbr0 shows as "VLAN Aware: Yes"
-3. Test connectivity to gateway: `ping 192.168.1.1`
+3. Test connectivity to gateway: `ping 192.168.0.1`
 
 ## Step 7: Install Essential Packages
 
@@ -316,7 +316,7 @@ echo "0 3 * * * /usr/local/bin/cleanup-backups.sh" | crontab -
 # Action: ACCEPT
 # Protocol: tcp
 # Dest. port: 8006 (Proxmox Web UI)
-# Source: 192.168.1.0/24,192.168.10.0/24,192.168.90.0/24
+# Source: 192.168.0.0/24,192.168.10.0/24,192.168.90.0/24
 # Comment: Allow Proxmox web access from management networks
 ```
 
@@ -371,7 +371,7 @@ ncdu /
 
 # Check network connectivity
 ping 8.8.8.8
-ping 192.168.1.1
+ping 192.168.0.1
 
 # Check virtualization support
 egrep -c '(vmx|svm)' /proc/cpuinfo
@@ -439,7 +439,7 @@ Node 1 Configuration:
 ### Network Connectivity Problems
 ```bash
 # Test basic connectivity
-ping 192.168.1.1  # Gateway
+ping 192.168.0.1  # Gateway
 
 # Check network interface
 ip addr show
