@@ -37,6 +37,7 @@ This repository contains detailed documentation for deploying a complete homelab
 | [`gaming_setup.md`](gaming_setup.md) | Gaming optimization and GPU passthrough |
 | [`shared_infrastructure.md`](shared_infrastructure.md) | Common infrastructure components |
 | [`cavern_learnings.md`](cavern_learnings.md) | Lessons learned, troubleshooting, and optimization insights |
+| [`transition_plan.md`](transition_plan.md) | Comprehensive roadmap from current state to final Snorlax Edition |
 
 
 ## 🚀 Quick Start
