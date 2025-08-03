@@ -89,6 +89,50 @@ This is a documentation-only repository. There are no build, test, or lint comma
 - Ensure cross-references between guides remain accurate
 - Validate network diagrams and IP allocations
 
+### Git Workflow and Commit Strategy
+**IMPORTANT**: Commit frequently to preserve progress and insights during deployment phases.
+
+#### When to Commit
+- **After each phase completion** - Major milestones with comprehensive updates
+- **When significant learnings are captured** - New troubleshooting insights or procedure corrections
+- **After testing procedures** - Manual processes that work and are ready for automation
+- **Progress updates** - When documentation is updated with current deployment status
+- **Before major changes** - Create checkpoint before attempting complex configurations
+
+#### Commit Message Guidelines
+- Use **descriptive, comprehensive commit messages** that capture the full scope of work
+- Include **technical achievements** and **learning outcomes** in commit body
+- Reference **phase completion status** and **next steps preparation**
+- Document **key discoveries** (e.g., "Discovered both pve-enterprise.list AND ceph.list need fixing")
+- Use **emoji indicators** for quick visual scanning (✅ ❌ 🔄 🚀)
+
+#### Example Commit Structure
+```
+Brief summary of achievement
+
+## Major Achievements
+- ✅ Key accomplishment 1
+- ✅ Key accomplishment 2
+
+## Technical Details
+- Specific configurations implemented
+- Issues discovered and resolved
+- Automation scripts created
+
+## Documentation Updates
+- Files updated with progress
+- Learning captured in cavern_learnings.md
+
+## Next Phase Ready
+- Prerequisites met for next phase
+- Scripts/procedures prepared
+
+🚀 Generated with [Claude Code](https://claude.ai/code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+This approach ensures deployment progress is never lost and provides detailed history for troubleshooting and future reference.
+
 ## Notes for Development
 
 - This repository contains **homelab infrastructure documentation**, not application code
