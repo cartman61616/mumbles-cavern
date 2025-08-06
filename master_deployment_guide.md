@@ -85,7 +85,17 @@ This guide walks you through deploying a complete Proxmox homelab cluster using 
 - Download client configuration (qBittorrent)
 - Service integration testing
 
-### Phase 6: Monitoring & Management
+### Phase 6: Proxmox 9.0 Upgrade
+**File**: `06-proxmox-upgrade.md`  
+**Duration**: 2-3 hours  
+**Purpose**: Upgrade cluster to latest Proxmox version
+- Pre-upgrade checklist and compatibility validation
+- Backup verification and rollback preparation
+- In-place upgrade from Proxmox 8.x to 9.0
+- Post-upgrade validation and optimization
+- New features configuration and testing
+
+### Phase 7: Monitoring & Management
 **File**: `07-monitoring.md`  
 **Duration**: 3-4 hours  
 **Purpose**: Deploy monitoring and observability
@@ -95,7 +105,7 @@ This guide walks you through deploying a complete Proxmox homelab cluster using 
 - Dashboard creation and alerting
 - Performance baseline establishment
 
-### Phase 7: External Access & Security
+### Phase 8: External Access & Security
 **File**: `08-external-access.md`  
 **Duration**: 3-4 hours  
 **Purpose**: Configure secure remote access
@@ -105,7 +115,7 @@ This guide walks you through deploying a complete Proxmox homelab cluster using 
 - Service routing and load balancing
 - Security hardening
 
-### Phase 8: Gaming Infrastructure
+### Phase 9: Gaming Infrastructure
 **File**: `09-gaming-setup.md`  
 **Duration**: 2-3 hours  
 **Purpose**: Deploy gaming-specific services
@@ -134,9 +144,10 @@ Each phase includes validation steps. Mark completion:
 - [ ] Phase 3: Storage accessible, NFS mounted
 - [ ] Phase 4: Shared services healthy and accessible
 - [ ] Phase 5: Plex and *arr stack functional
-- [ ] Phase 6: Monitoring dashboards operational
-- [ ] Phase 7: External access working, SSL certificates valid
-- [ ] Phase 8: Gaming services deployed and optimized
+- [ ] Phase 6: Proxmox 9.0 upgrade completed and validated
+- [ ] Phase 7: Monitoring dashboards operational
+- [ ] Phase 8: External access working, SSL certificates valid
+- [ ] Phase 9: Gaming services deployed and optimized
 
 ## Emergency Procedures
 
@@ -161,8 +172,9 @@ Each phase includes validation steps. Mark completion:
 ## Timeline Estimate
 - **Weekend 1**: Pre-Phase 0 through Phase 2 (Basic cluster)
 - **Weekend 2**: Phase 3 through Phase 5 (Core services)
-- **Weekend 3**: Phase 6 through Phase 8 (Monitoring and gaming)
-- **Total**: 20-30 hours spread across 3 weekends
+- **Weekend 3**: Phase 6 through Phase 7 (Upgrade and monitoring)
+- **Weekend 4**: Phase 8 through Phase 9 (External access and gaming)
+- **Total**: 23-33 hours spread across 4 weekends
 
 Each phase is designed to leave you with a functional system, so you can take breaks between phases without losing progress.
 

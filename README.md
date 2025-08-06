@@ -26,6 +26,7 @@ This repository contains detailed documentation for deploying a complete homelab
 | [`network_setup.md`](network_setup.md) | VLAN architecture and UniFi configuration | 4-6 hours |
 | [`primary_node_setup.md`](primary_node_setup.md) | First Proxmox node installation and setup | 2-3 hours |
 | [`cluster_setup.md`](cluster_setup.md) | Multi-node cluster formation | 2-4 hours |
+| [`06-proxmox-upgrade.md`](06-proxmox-upgrade.md) | Proxmox 9.0 upgrade process | 2-3 hours |
 
 ### Infrastructure Components
 
@@ -73,10 +74,11 @@ The deployment is structured in logical phases to minimize complexity:
 2. **Network Infrastructure** - VLAN and security configuration  
 3. **Primary Node** - First Proxmox installation
 4. **Cluster Formation** - Multi-node setup
-5. **VPN Access** - Secure remote connectivity (priority moved up)
-6. **Storage Integration** - Shared storage configuration
-7. **Service Deployment** - Essential homelab services
-8. **Gaming Optimization** - Performance tuning and GPU setup
+5. **Storage Integration** - Shared storage configuration
+6. **Proxmox 9.0 Upgrade** - Upgrade to latest version with enhanced features
+7. **Monitoring & Management** - System observability and alerting
+8. **External Access & Security** - Secure remote connectivity
+9. **Gaming Optimization** - Performance tuning and GPU setup
 
 ## 📊 Progress Report
 
@@ -87,11 +89,12 @@ Track your deployment progress using this checklist:
 - [x] **Network Infrastructure** - VLANs, QoS, and switch configuration complete! 🚀 ([Progress](network_setup_progress.md))
 - [x] **Primary Node** - Proxmox installed and inter-VLAN routing working! 🚀
 - [x] **Cluster Formation** - 2-node cluster created and operational! 🚀
-- [ ] **VPN Access** - Secure remote connectivity established (moved up in priority)
 - [ ] **Storage Integration** - TrueNAS and local storage configured
   - 🔄 **Currently migrating data to extra drives for ASUSTOR NAS reset**
+- [ ] **Proxmox 9.0 Upgrade** - Upgrade cluster to latest Proxmox version with enhanced features
 - [ ] **Essential Services** - Core homelab services deployed
-- [ ] **External Access** - Additional remote connectivity options
+- [ ] **Monitoring & Management** - System observability and alerting deployed
+- [ ] **External Access & Security** - Secure remote connectivity established
 - [ ] **Gaming Setup** - GPU passthrough and optimization complete
 
 ### Infrastructure Status
