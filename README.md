@@ -73,9 +73,10 @@ The deployment is structured in logical phases to minimize complexity:
 2. **Network Infrastructure** - VLAN and security configuration  
 3. **Primary Node** - First Proxmox installation
 4. **Cluster Formation** - Multi-node setup
-5. **Storage Integration** - Shared storage configuration
-6. **Service Deployment** - Essential homelab services
-7. **Gaming Optimization** - Performance tuning and GPU setup
+5. **VPN Access** - Secure remote connectivity (priority moved up)
+6. **Storage Integration** - Shared storage configuration
+7. **Service Deployment** - Essential homelab services
+8. **Gaming Optimization** - Performance tuning and GPU setup
 
 ## 📊 Progress Report
 
@@ -86,9 +87,11 @@ Track your deployment progress using this checklist:
 - [x] **Network Infrastructure** - VLANs, QoS, and switch configuration complete! 🚀 ([Progress](network_setup_progress.md))
 - [x] **Primary Node** - Proxmox installed and inter-VLAN routing working! 🚀
 - [x] **Cluster Formation** - 2-node cluster created and operational! 🚀
+- [ ] **VPN Access** - Secure remote connectivity established (moved up in priority)
 - [ ] **Storage Integration** - TrueNAS and local storage configured
+  - 🔄 **Currently migrating data to extra drives for ASUSTOR NAS reset**
 - [ ] **Essential Services** - Core homelab services deployed
-- [ ] **External Access** - Remote connectivity established
+- [ ] **External Access** - Additional remote connectivity options
 - [ ] **Gaming Setup** - GPU passthrough and optimization complete
 
 ### Infrastructure Status
