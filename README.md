@@ -91,7 +91,7 @@ Track your deployment progress using this checklist:
 - [x] **Cluster Formation** - 2-node cluster created and operational! 🚀
 - [ ] **Storage Integration** - TrueNAS and local storage configured
   - 🔄 **Currently migrating data to extra drives for ASUSTOR NAS reset**
-- [ ] **Proxmox 9.0 Upgrade** - Upgrade cluster to latest Proxmox version with enhanced features
+- [x] **Proxmox 9.0 Upgrade** - Upgrade cluster to latest Proxmox version with enhanced features! 🚀
 - [ ] **Essential Services** - Core homelab services deployed
 - [ ] **Monitoring & Management** - System observability and alerting deployed
 - [ ] **External Access & Security** - Secure remote connectivity established
