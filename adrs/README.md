@@ -40,6 +40,7 @@ Key steps or considerations for implementation.
 | [001](001-vlan-segmentation-strategy.md) | VLAN Segmentation Strategy | Accepted | 2025-01-07 |
 | [002](002-naming-convention-standard.md) | Infrastructure Naming Convention | Accepted | 2025-01-07 |
 | [003](003-macbook-pro-integration.md) | MacBook Pro Tri-Role Integration | Accepted | 2025-01-07 |
+| [006](006-vpn-integration-strategy.md) | NordVPN Integration Strategy | Accepted | 2025-01-07 |
 | [004](004-migration-strategy.md) | Service Migration Strategy | Accepted | 2025-01-07 |
 | [005](005-service-architecture.md) | Container Orchestration Strategy | Accepted | 2025-01-07 |
 

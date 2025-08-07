@@ -19,7 +19,18 @@ Comprehensive tracking and monitoring document for all devices in the Mumbles Ca
 | 🟢 **ACTIVE** | ASUSTOR NAS | Primary Storage | TrueNAS reset pending |
 | 🟡 **TRANSITIONING** | Snorlax Prime | Current Homelab Server | Migration to gaming/dev role |
 | 🟢 **ACTIVE** | Mighty Snorlax | Primary Gaming PC | None |
-| 🔵 **INTEGRATING** | MacBook Pro | Tri-Role Workstation | Awaiting integration |
+| 🔵 **INTEGRATING** | Dreamy Pro | Lab Integration Workstation | Awaiting integration |
+| 🟢 **PERSONAL** | Munchlax | Daily Driver Laptop | VPN Protected |
+| 🗋 **WORK** | Work MacBook | Work Laptop | Direct Internet (compliance) |
+| 🗋 **WORK** | Work Windows | Work Laptop | Direct Internet (compliance) |
+
+### Smart Home / IoT Devices
+| Status | Device | Role | Network Status |
+|--------|--------|------|----------------|
+| 🟡 **IOT** | Google Home Devices | Voice Assistant | VPN + Isolated |
+| 🟡 **IOT** | Philips Hue Bridge | Smart Lighting Hub | VPN + Isolated |
+| 🟡 **IOT** | Philips Hue Lights | Smart Lights | VPN + Isolated |
+| 🟡 **IOT** | Elgato Lights | Content Creation Lighting | VPN + Isolated |
 
 ## Core Infrastructure
 
@@ -349,23 +360,48 @@ Gaming Services:
   - Network game streaming
 ```
 
-### MacBook Pro (Tri-Role Workstation)
+### MacBook Pro 16" Intel (Lab Integration Workstation)
 ```yaml
 Hardware:
-  Model: MacBook Pro [Specific model TBD]
-  CPU: Apple Silicon / Intel
+  Model: MacBook Pro 16" (2019)
+  CPU: Intel (6-core or 8-core)
   RAM: [To be specified]
   Storage: SSD
   
 Network:
-  Hostname: dreamy-mac.mumblescavern.local
+  Hostname: dreamy-pro.mumblescavern.local
   Primary IP: 192.168.20.50
-  VLAN: Services (20) - Primary
+  VLAN: Services (20) - VPN Protected
   Additional Access: All VLANs via routing
   
 Status:
   Current: 🔵 Integration planned
   Roles: Development + Media Production + Management
+```
+
+### MacBook Air M4 (Personal Daily Driver)
+```yaml
+Hardware:
+  Model: MacBook Air (2024)
+  Model ID: Mac16,13
+  Chip: Apple M4 (10-core: 4P + 6E)
+  RAM: 16GB Unified Memory
+  Storage: SSD
+  OS: macOS 15.5 (Sequoia)
+  
+Network:
+  Hostname: munchlax.mumblescavern.local
+  Primary IP: 192.168.20.51 (Services VLAN)
+  Work IP: 192.168.30.51 (Work VLAN) - when work mode needed
+  VPN: Protected through homelab VPN gateway
+  
+Status:
+  Current: 🟢 Personal device integrated with homelab security
+  Role: Daily driver with VPN protection
+  
+Dual Mode Capability:
+  - Personal Mode: Services VLAN → VPN Protected
+  - Work Mode: Work VLAN → Direct Internet (when corporate compliance needed)
   
 Role 1 - Development Workstation:
   - Infrastructure code development

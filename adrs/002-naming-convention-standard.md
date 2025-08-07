@@ -25,12 +25,15 @@ Implement a **Snorlax-themed naming convention** with clear device type identifi
 - `synology-backup.mumblescavern.local` - Backup storage
 - `udmp.mumblescavern.local` - UniFi Dream Machine Pro
 - `flex-mini.mumblescavern.local` - UniFi Flex Mini switch
+- `sleepy-printer.mumblescavern.local` - Network printer
+- `sleepy-vpn.mumblescavern.local` - VPN gateway
 
 **Gaming & Workstation**:
 - `mighty-snorlax.mumblescavern.local` - Primary gaming workstation
 - `snorlax-prime.mumblescavern.local` - Current homelab server (transitioning)
 - `sleepy-deck.mumblescavern.local` - Steam Deck
-- `dreamy-mac.mumblescavern.local` - MacBook Pro tri-role station
+- `dreamy-pro.mumblescavern.local` - MacBook Pro 16" lab integration
+- `munchlax.mumblescavern.local` - MacBook Air M4 personal daily driver
 
 ### Service Naming Convention
 
@@ -81,3 +84,17 @@ Implement a **Snorlax-themed naming convention** with clear device type identifi
 **FQDN Structure**: `.mumblescavern.local` provides clear domain separation and supports future external DNS/certificates.
 
 **Scalability**: Theme can accommodate 20+ devices with variations (sleepy, drowsy, dozing, napping, resting, etc.).
+
+**Personal Device Theme**: Personal devices use Munchlax theme (Snorlax family) to distinguish from infrastructure while maintaining ecosystem cohesion.
+
+**VPN Integration**: VPN gateway and routing follow sleep theme while providing security infrastructure.
+
+**Updated VLAN Structure** (with VPN integration):
+- VLAN 1 (Default): 192.168.1.x - Personal trusted devices (VPN-protected)
+- VLAN 10 (Management): 192.168.10.x - Infrastructure (VPN-protected)
+- VLAN 20 (Services): 192.168.20.x - Homelab services (VPN-protected)
+- VLAN 30 (Work): 192.168.30.x - Work devices only (Direct internet)
+- VLAN 50 (IoT): 192.168.50.x - Smart home devices (VPN-protected + Isolated)
+- VLAN 80 (Gaming): 192.168.80.x - Gaming devices (VPN-protected)
+
+**IoT Device Theme**: Smart home devices use sleep/comfort-themed names (`sleepy-assistant`, `dreamy-light-hub`, `cozy-light-*`, `bright-light-*`) maintaining ecosystem cohesion while indicating their smart home purpose.

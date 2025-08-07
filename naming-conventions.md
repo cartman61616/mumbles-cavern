@@ -51,7 +51,22 @@ Naming scheme supports 20+ devices with thematic variations.
 | `mighty-snorlax` | `mighty-snorlax.mumblescavern.local` | Primary Gaming PC | Ryzen 5600X, RTX 3070 | 192.168.80.10 |
 | `snorlax-prime` | `snorlax-prime.mumblescavern.local` | Gaming/Dev Support | Intel i5-6500, GTX 970 | 192.168.80.15 |
 | `sleepy-deck` | `sleepy-deck.mumblescavern.local` | Portable Gaming | Steam Deck | 192.168.80.20 |
-| `dreamy-mac` | `dreamy-mac.mumblescavern.local` | Tri-Role Workstation | MacBook Pro | 192.168.20.50 |
+| `dreamy-pro` | `dreamy-pro.mumblescavern.local` | Lab Integration Workstation | MacBook Pro 16" (2019) | 192.168.20.50 |
+
+### Personal Devices (Munchlax Theme)
+
+| Hostname | FQDN | Role | Hardware | IP Address |
+|----------|------|------|----------|------------|
+| `munchlax` | `munchlax.mumblescavern.local` | Personal Daily Driver | MacBook Air M4 (2024) | 192.168.20.51 |
+
+### IoT Devices (Smart Home Theme)
+
+| Hostname | FQDN | Role | Hardware | IP Address |
+|----------|------|------|----------|------------|
+| `sleepy-assistant` | `sleepy-assistant.mumblescavern.local` | Voice Assistant | Google Home Hub | 192.168.50.10 |
+| `dreamy-light-hub` | `dreamy-light-hub.mumblescavern.local` | Smart Lighting Hub | Philips Hue Bridge | 192.168.50.20 |
+| `cozy-light-*` | `cozy-light-01.mumblescavern.local` | Smart Lights | Philips Hue Bulbs | 192.168.50.21+ |
+| `bright-light-*` | `bright-light-01.mumblescavern.local` | Content Lighting | Elgato Lights | 192.168.50.30+ |
 
 ## Service Naming
 

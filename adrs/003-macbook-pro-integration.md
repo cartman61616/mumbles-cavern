@@ -10,7 +10,7 @@ The MacBook Pro represents significant compute capability that could enhance the
 
 ## Decision
 
-Implement **tri-role MacBook Pro integration** as `dreamy-mac.mumblescavern.local` with the following roles:
+Implement **tri-role MacBook Pro 16" integration** as `dreamy-pro.mumblescavern.local` with the following roles:
 
 ### Role 1: Development Workstation (Primary)
 - **Network**: Services VLAN (192.168.20.50)
