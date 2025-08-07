@@ -26,7 +26,7 @@ This repository contains detailed documentation for deploying a complete homelab
 | [`network_setup.md`](network_setup.md) | VLAN architecture and UniFi configuration | 4-6 hours |
 | [`primary_node_setup.md`](primary_node_setup.md) | First Proxmox node installation and setup | 2-3 hours |
 | [`cluster_setup.md`](cluster_setup.md) | Multi-node cluster formation | 2-4 hours |
-| [`06-proxmox-upgrade.md`](06-proxmox-upgrade.md) | Proxmox 9.0 upgrade process | 2-3 hours |
+| [`06-sleepy-upgrade.md`](06-sleepy-upgrade.md) | Sleepy Cluster Upgrade (Proxmox 9.0) | 2-3 hours |
 
 ### Infrastructure Components
 

@@ -1,4 +1,4 @@
-# Phase 6: Proxmox 9.0 Upgrade
+# Phase 6: Sleepy Cluster Upgrade (Proxmox VE 9.0)
 
 ## Overview
 This phase upgrades your existing Proxmox VE 8.x cluster to the latest Proxmox VE 9.0, which includes enhanced features like snapshots for thick-provisioned LVM storage, improved HA rules, and enhanced Software-Defined Networking (SDN) capabilities.
@@ -327,7 +327,7 @@ Upon successful completion:
 - [ ] New features tested and configured
 - [ ] Documentation updated with new version
 
-**Continue to**: [Phase 7: Monitoring & Management](07-monitoring.md)
+**Continue to**: [Phase 7: Sleepy Monitoring & Management](07-sleepy-monitoring.md)
 
 ## Support Resources
 - **Proxmox VE 9.0 Documentation**: https://pve.proxmox.com/pve-docs/

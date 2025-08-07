@@ -85,8 +85,8 @@ This guide walks you through deploying a complete Proxmox homelab cluster using 
 - Download client configuration (qBittorrent)
 - Service integration testing
 
-### Phase 6: Proxmox 9.0 Upgrade
-**File**: `06-proxmox-upgrade.md`  
+### Phase 6: Sleepy Cluster Upgrade
+**File**: `06-sleepy-upgrade.md`  
 **Duration**: 2-3 hours  
 **Purpose**: Upgrade cluster to latest Proxmox version
 - Pre-upgrade checklist and compatibility validation
