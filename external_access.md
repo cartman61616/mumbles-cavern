@@ -162,7 +162,7 @@ http:
   routers:
     # Example of load-balanced router
     plex-lb:
-      rule: "Host(`plex-lb.yourdomain.com`)"
+      rule: "Host(`plex-lb.snorlax.me`)"
       entrypoints:
         - websecure
       middlewares:
@@ -455,11 +455,11 @@ def main():
     
     # Define services to monitor
     services = [
-        ("plex.yourdomain.com", "plex", "/identity"),
-        ("grafana.yourdomain.com", "grafana", "/api/health"),
-        ("sonarr.yourdomain.com", "sonarr", "/ping"),
-        ("radarr.yourdomain.com", "radarr", "/ping"),
-        ("traefik.yourdomain.com", "traefik", "/ping"),
+        ("plex.snorlax.me", "plex", "/identity"),
+        ("grafana.snorlax.me", "grafana", "/api/health"),
+        ("sonarr.snorlax.me", "sonarr", "/ping"),
+        ("radarr.snorlax.me", "radarr", "/ping"),
+        ("traefik.snorlax.me", "traefik", "/ping"),
     ]
     
     while True:
@@ -604,12 +604,12 @@ echo "=== External Access Validation ==="
 
 # Define services to test
 SERVICES=(
-    "whoami.yourdomain.com"
-    "plex.yourdomain.com"
-    "grafana.yourdomain.com"
-    "sonarr.yourdomain.com"
-    "radarr.yourdomain.com"
-    "traefik.yourdomain.com"
+    "whoami.snorlax.me"
+    "plex.snorlax.me"
+    "grafana.snorlax.me"
+    "sonarr.snorlax.me"
+    "radarr.snorlax.me"
+    "traefik.snorlax.me"
 )
 
 # Test external accessibility
@@ -704,7 +704,7 @@ echo "=== Security Testing ==="
 # Test rate limiting
 echo "Testing rate limiting..."
 for i in {1..60}; do
-    curl -s -o /dev/null "https://whoami.yourdomain.com" &
+    curl -s -o /dev/null "https://whoami.snorlax.me" &
 done
 wait
 
@@ -713,7 +713,7 @@ echo "Rate limiting test completed (check access logs for blocks)"
 # Test security headers
 echo ""
 echo "Testing security headers..."
-HEADERS=$(curl -s -I "https://whoami.yourdomain.com")
+HEADERS=$(curl -s -I "https://whoami.snorlax.me")
 echo "Security Headers Check:"
 
 if echo "$HEADERS" | grep -qi "X-Frame-Options"; then
@@ -737,7 +737,7 @@ fi
 # Test admin access restrictions
 echo ""
 echo "Testing admin access restrictions..."
-ADMIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://traefik.yourdomain.com" --max-time 10)
+ADMIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://traefik.snorlax.me" --max-time 10)
 if [ "$ADMIN_STATUS" = "401" ] || [ "$ADMIN_STATUS" = "403" ]; then
     echo "✅ Admin interface properly restricted"
 else
@@ -798,7 +798,7 @@ docker run --rm cloudflare/cloudflared:latest tunnel --no-autoupdate run --token
 docker logs traefik | grep -i acme
 
 # Test DNS challenge manually
-dig TXT _acme-challenge.yourdomain.com
+dig TXT _acme-challenge.snorlax.me
 
 # Check Cloudflare API access
 curl -X GET "https://api.cloudflare.com/client/v4/zones" \
@@ -894,7 +894,7 @@ EOF
 ## Final Configuration Tasks
 
 ### Update Service Configurations
-Replace `yourdomain.com` with your actual domain in all configuration files:
+Replace `snorlax.me` with your actual domain in all configuration files:
 
 ```bash
 # Update all domain references
@@ -918,7 +918,7 @@ echo "Testing complete external user workflow..."
 
 # 1. Test Plex access and media streaming capability
 echo "1. Testing Plex external access..."
-PLEX_RESPONSE=$(curl -s "https://plex.yourdomain.com/identity")
+PLEX_RESPONSE=$(curl -s "https://plex.snorlax.me/identity")
 if echo "$PLEX_RESPONSE" | grep -q "PlexMediaServer"; then
     echo "✅ Plex externally accessible"
 else
@@ -927,7 +927,7 @@ fi
 
 # 2. Test Grafana dashboard access
 echo "2. Testing Grafana external access..."
-GRAFANA_RESPONSE=$(curl -s "https://grafana.yourdomain.com/api/health")
+GRAFANA_RESPONSE=$(curl -s "https://grafana.snorlax.me/api/health")
 if echo "$GRAFANA_RESPONSE" | grep -q "ok"; then
     echo "✅ Grafana externally accessible"
 else
@@ -937,7 +937,7 @@ fi
 # 3. Test *arr service management
 echo "3. Testing *arr services external access..."
 for service in sonarr radarr prowlarr; do
-    RESPONSE=$(curl -s "https://$service.yourdomain.com/ping")
+    RESPONSE=$(curl -s "https://$service.snorlax.me/ping")
     if echo "$RESPONSE" | grep -q "OK"; then
         echo "✅ $service externally accessible"
     else
@@ -947,7 +947,7 @@ done
 
 # 4. Test security restrictions
 echo "4. Testing security restrictions..."
-ADMIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://traefik.yourdomain.com")
+ADMIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://traefik.snorlax.me")
 if [ "$ADMIN_RESPONSE" = "401" ] || [ "$ADMIN_RESPONSE" = "403" ]; then
     echo "✅ Admin services properly restricted"
 else
@@ -957,7 +957,7 @@ fi
 # 5. Test performance
 echo "5. Testing performance..."
 for service in plex grafana sonarr; do
-    RESPONSE_TIME=$(curl -s -o /dev/null -w "%{time_total}" "https://$service.yourdomain.com" --max-time 10)
+    RESPONSE_TIME=$(curl -s -o /dev/null -w "%{time_total}" "https://$service.snorlax.me" --max-time 10)
     if (( $(echo "$RESPONSE_TIME < 3.0" | bc -l) )); then
         echo "✅ $service response time: ${RESPONSE_TIME}s"
     else
@@ -970,10 +970,10 @@ echo "=== External Access Test Complete ==="
 echo ""
 echo "If all tests pass, your external access is properly configured!"
 echo "Services are accessible at:"
-echo "  https://plex.yourdomain.com"
-echo "  https://grafana.yourdomain.com"
-echo "  https://sonarr.yourdomain.com"
-echo "  https://radarr.yourdomain.com"
+echo "  https://plex.snorlax.me"
+echo "  https://grafana.snorlax.me"
+echo "  https://sonarr.snorlax.me"
+echo "  https://radarr.snorlax.me"
 EOF
 
 chmod +x scripts/e2e-external-test.sh
@@ -1167,13 +1167,13 @@ cat > docs/external-access-guide.md << 'EOF'
 # External Access Configuration Guide
 
 ## Service URLs
-- **Plex Media Server**: https://plex.yourdomain.com
-- **Grafana Monitoring**: https://grafana.yourdomain.com
-- **Sonarr (TV)**: https://sonarr.yourdomain.com
-- **Radarr (Movies)**: https://radarr.yourdomain.com
-- **Prowlarr (Indexers)**: https://prowlarr.yourdomain.com
-- **Tautulli (Plex Stats)**: https://tautulli.yourdomain.com
-- **Traefik Dashboard**: https://traefik.yourdomain.com (admin only)
+- **Plex Media Server**: https://plex.snorlax.me
+- **Grafana Monitoring**: https://grafana.snorlax.me
+- **Sonarr (TV)**: https://sonarr.snorlax.me
+- **Radarr (Movies)**: https://radarr.snorlax.me
+- **Prowlarr (Indexers)**: https://prowlarr.snorlax.me
+- **Tautulli (Plex Stats)**: https://tautulli.snorlax.me
+- **Traefik Dashboard**: https://traefik.snorlax.me (admin only)
 
 ## Security Features
 - **SSL/TLS**: Automatic certificates via Let's Encrypt + Cloudflare
@@ -1233,17 +1233,17 @@ Run these final validation steps:
 
 # Check all services are externally accessible:
 echo "Final External Access URLs:"
-echo "  https://plex.yourdomain.com"
-echo "  https://grafana.yourdomain.com" 
-echo "  https://sonarr.yourdomain.com"
-echo "  https://radarr.yourdomain.com"
-echo "  https://prowlarr.yourdomain.com"
-echo "  https://tautulli.yourdomain.com"
+echo "  https://plex.snorlax.me"
+echo "  https://grafana.snorlax.me" 
+echo "  https://sonarr.snorlax.me"
+echo "  https://radarr.snorlax.me"
+echo "  https://prowlarr.snorlax.me"
+echo "  https://tautulli.snorlax.me"
 echo ""
 echo "Admin URLs (internal network only):"
-echo "  https://traefik.yourdomain.com"
-echo "  https://proxmox1.yourdomain.com"
-echo "  https://proxmox2.yourdomain.com"
+echo "  https://traefik.snorlax.me"
+echo "  https://proxmox1.snorlax.me"
+echo "  https://proxmox2.snorlax.me"
 ```
 
 **Next Phase**: Proceed to [Gaming Setup](09-gaming-setup.md) to deploy gaming-specific infrastructure including game streaming servers and retro gaming systems.# Phase 7: External Access and Security
@@ -1323,8 +1323,8 @@ CF_ZONE_ID=your-cloudflare-zone-id
 CLOUDFLARE_TUNNEL_TOKEN=your-tunnel-token-here
 
 # Domain Configuration
-DOMAIN=yourdomain.com
-TRAEFIK_DOMAIN=traefik.yourdomain.com
+DOMAIN=snorlax.me
+TRAEFIK_DOMAIN=traefik.snorlax.me
 
 # Traefik Configuration
 TRAEFIK_API_USER=admin
@@ -1640,7 +1640,7 @@ services:
       - PLEX_UID=${PLEX_UID}
       - PLEX_GID=${PLEX_GID}
       - TZ=${TZ}
-      - ADVERTISE_IP=http://192.168.1.20:32400/,https://plex.yourdomain.com:443
+      - ADVERTISE_IP=http://192.168.1.20:32400/,https://plex.snorlax.me:443
     volumes:
       - ./config:/config
       - ./transcode:/transcode
@@ -1660,7 +1660,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.plex.entrypoints=websecure"
-      - "traefik.http.routers.plex.rule=Host(`plex.yourdomain.com`)"
+      - "traefik.http.routers.plex.rule=Host(`plex.snorlax.me`)"
       - "traefik.http.routers.plex.middlewares=security-headers@file"
       - "traefik.http.routers.plex.tls=true"
       - "traefik.http.routers.plex.tls.certresolver=cloudflare"
@@ -1686,7 +1686,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.tautulli.entrypoints=websecure"
-      - "traefik.http.routers.tautulli.rule=Host(`tautulli.yourdomain.com`)"
+      - "traefik.http.routers.tautulli.rule=Host(`tautulli.snorlax.me`)"
       - "traefik.http.routers.tautulli.middlewares=security-headers@file"
       - "traefik.http.routers.tautulli.tls=true"
       - "traefik.http.routers.tautulli.tls.certresolver=cloudflare"
@@ -1741,7 +1741,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sonarr.entrypoints=websecure"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.yourdomain.com`)"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.snorlax.me`)"
       - "traefik.http.routers.sonarr.middlewares=security-headers@file"
       - "traefik.http.routers.sonarr.tls=true"
       - "traefik.http.routers.sonarr.tls.certresolver=cloudflare"
@@ -1766,7 +1766,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.radarr.entrypoints=websecure"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.yourdomain.com`)"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.snorlax.me`)"
       - "traefik.http.routers.radarr.middlewares=security-headers@file"
       - "traefik.http.routers.radarr.tls=true"
       - "traefik.http.routers.radarr.tls.certresolver=cloudflare"
@@ -1789,7 +1789,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prowlarr.entrypoints=websecure"
-      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.yourdomain.com`)"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.snorlax.me`)"
       - "traefik.http.routers.prowlarr.middlewares=security-headers@file"
       - "traefik.http.routers.prowlarr.tls=true"
       - "traefik.http.routers.prowlarr.tls.certresolver=cloudflare"
@@ -1816,7 +1816,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qbittorrent.entrypoints=websecure"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.yourdomain.com`)"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.snorlax.me`)"
       - "traefik.http.routers.qbittorrent.middlewares=admin-whitelist@file,security-headers@file"
       - "traefik.http.routers.qbittorrent.tls=true"
       - "traefik.http.routers.qbittorrent.tls.certresolver=cloudflare"
@@ -1841,7 +1841,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.bazarr.entrypoints=websecure"
-      - "traefik.http.routers.bazarr.rule=Host(`bazarr.yourdomain.com`)"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.snorlax.me`)"
       - "traefik.http.routers.bazarr.middlewares=security-headers@file"
       - "traefik.http.routers.bazarr.tls=true"
       - "traefik.http.routers.bazarr.tls.certresolver=cloudflare"
@@ -1873,7 +1873,7 @@ cat >> docker-compose.yml << 'EOF'
       # Grafana labels
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.yourdomain.com`)"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.snorlax.me`)"
       - "traefik.http.routers.grafana.middlewares=security-headers@file"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=cloudflare"
@@ -1900,16 +1900,16 @@ Back in **Cloudflare Dashboard → Zero Trust → Networks → Tunnels**:
 
 1. **Edit your tunnel** and add public hostnames:
    ```
-   plex.yourdomain.com → http://192.168.1.23:80
-   sonarr.yourdomain.com → http://192.168.1.23:80
-   radarr.yourdomain.com → http://192.168.1.23:80
-   prowlarr.yourdomain.com → http://192.168.1.23:80
-   qbittorrent.yourdomain.com → http://192.168.1.23:80
-   tautulli.yourdomain.com → http://192.168.1.23:80
-   bazarr.yourdomain.com → http://192.168.1.23:80
-   grafana.yourdomain.com → http://192.168.1.23:80
-   traefik.yourdomain.com → http://192.168.1.23:80
-   whoami.yourdomain.com → http://192.168.1.23:80
+   plex.snorlax.me → http://192.168.1.23:80
+   sonarr.snorlax.me → http://192.168.1.23:80
+   radarr.snorlax.me → http://192.168.1.23:80
+   prowlarr.snorlax.me → http://192.168.1.23:80
+   qbittorrent.snorlax.me → http://192.168.1.23:80
+   tautulli.snorlax.me → http://192.168.1.23:80
+   bazarr.snorlax.me → http://192.168.1.23:80
+   grafana.snorlax.me → http://192.168.1.23:80
+   traefik.snorlax.me → http://192.168.1.23:80
+   whoami.snorlax.me → http://192.168.1.23:80
    ```
 
 2. **Configure additional headers** (optional):
@@ -1926,13 +1926,13 @@ Back in **Cloudflare Dashboard → Zero Trust → Networks → Tunnels**:
 # From outside your network or using a VPN:
 
 # Test whoami service first (simplest test)
-curl -k https://whoami.yourdomain.com
+curl -k https://whoami.snorlax.me
 
 # Test Plex external access
-curl -k https://plex.yourdomain.com/identity
+curl -k https://plex.snorlax.me/identity
 
 # Test Grafana
-curl -k https://grafana.yourdomain.com/api/health
+curl -k https://grafana.snorlax.me/api/health
 
 # All should return appropriate responses without errors
 ```
@@ -1998,7 +1998,7 @@ http:
   routers:
     # Proxmox web interface (admin only)
     proxmox-node1:
-      rule: "Host(`proxmox1.yourdomain.com`)"
+      rule: "Host(`proxmox1.snorlax.me`)"
       entrypoints:
         - websecure
       middlewares:
@@ -2008,7 +2008,7 @@ http:
       service: proxmox-node1
 
     proxmox-node2:
-      rule: "Host(`proxmox2.yourdomain.com`)"
+      rule: "Host(`proxmox2.snorlax.me`)"
       entrypoints:
         - websecure
       middlewares:

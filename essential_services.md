@@ -244,7 +244,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.plex.entrypoints=websecure"
-      - "traefik.http.routers.plex.rule=Host(`plex.yourdomain.com`)"
+      - "traefik.http.routers.plex.rule=Host(`plex.snorlax.me`)"
       - "traefik.http.routers.plex.tls=true"
       - "traefik.http.routers.plex.tls.certresolver=cloudflare"
       - "traefik.http.services.plex.loadbalancer.server.port=32400"
@@ -268,7 +268,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.tautulli.entrypoints=websecure"
-      - "traefik.http.routers.tautulli.rule=Host(`tautulli.yourdomain.com`)"
+      - "traefik.http.routers.tautulli.rule=Host(`tautulli.snorlax.me`)"
       - "traefik.http.routers.tautulli.tls=true"
       - "traefik.http.routers.tautulli.tls.certresolver=cloudflare"
 
@@ -394,7 +394,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sonarr.entrypoints=websecure"
-      - "traefik.http.routers.sonarr.rule=Host(`sonarr.yourdomain.com`)"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.snorlax.me`)"
       - "traefik.http.routers.sonarr.tls=true"
       - "traefik.http.routers.sonarr.tls.certresolver=cloudflare"
 
@@ -423,7 +423,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.radarr.entrypoints=websecure"
-      - "traefik.http.routers.radarr.rule=Host(`radarr.yourdomain.com`)"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.snorlax.me`)"
       - "traefik.http.routers.radarr.tls=true"
       - "traefik.http.routers.radarr.tls.certresolver=cloudflare"
 
@@ -450,7 +450,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prowlarr.entrypoints=websecure"
-      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.yourdomain.com`)"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.snorlax.me`)"
       - "traefik.http.routers.prowlarr.tls=true"
       - "traefik.http.routers.prowlarr.tls.certresolver=cloudflare"
 
@@ -481,7 +481,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qbittorrent.entrypoints=websecure"
-      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.yourdomain.com`)"
+      - "traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.snorlax.me`)"
       - "traefik.http.routers.qbittorrent.tls=true"
       - "traefik.http.routers.qbittorrent.tls.certresolver=cloudflare"
 
@@ -507,7 +507,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.bazarr.entrypoints=websecure"
-      - "traefik.http.routers.bazarr.rule=Host(`bazarr.yourdomain.com`)"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.snorlax.me`)"
       - "traefik.http.routers.bazarr.tls=true"
       - "traefik.http.routers.bazarr.tls.certresolver=cloudflare"
 
@@ -573,67 +573,6 @@ docker-compose logs --tail=20
 
 ## Step 5: Deploy Additional Essential Services
 
-### Create Jellyfin Alternative (Optional)
-```bash
-# Create Jellyfin VM for alternative media server
-qm clone 9000 103 --name jellyfin-server --full --storage asustor-vm-storage
-
-# Configure Jellyfin VM
-qm set 103 --memory 4096 --cores 2
-qm set 103 --ipconfig0 ip=192.168.1.25/24,gw=192.168.1.1
-
-# Start and configure (similar to Plex setup)
-qm start 103
-
-# SSH and configure Jellyfin
-ssh ubuntu@192.168.1.25
-
-# Mount media storage
-sudo mkdir -p /mnt/media
-echo "192.168.10.20:/mnt/pool/media /mnt/media nfs rsize=131072,wsize=131072,hard,intr,timeo=14,retrans=2 0 0" | sudo tee -a /etc/fstab
-sudo mount -a
-
-# Create Jellyfin directory
-mkdir -p /home/ubuntu/jellyfin
-cd /home/ubuntu/jellyfin
-
-# Deploy Jellyfin
-cat > docker-compose.yml << 'EOF'
-version: '3.8'
-
-services:
-  jellyfin:
-    image: jellyfin/jellyfin:latest
-    container_name: jellyfin
-    restart: unless-stopped
-    ports:
-      - "8096:8096"
-      - "8920:8920"
-    environment:
-      - JELLYFIN_PublishedServerUrl=http://192.168.1.25:8096
-    volumes:
-      - ./config:/config
-      - ./cache:/cache
-      - /mnt/media:/media:ro
-    devices:
-      - /dev/dri:/dev/dri
-    networks:
-      - shared-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jellyfin.entrypoints=websecure"
-      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.yourdomain.com`)"
-      - "traefik.http.routers.jellyfin.tls=true"
-      - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
-
-networks:
-  shared-network:
-    external: true
-EOF
-
-docker network create shared-network || echo "Network exists"
-docker-compose up -d
-```
 
 ## Step 6: Service Health Monitoring
 
@@ -1360,13 +1299,6 @@ else
     echo "❌ Tautulli not accessible"
 fi
 
-# Test Jellyfin (if deployed)
-echo "Testing Jellyfin..."
-if curl -s http://192.168.1.25:8096/health | grep -q Healthy; then
-    echo "✅ Jellyfin accessible"
-else
-    echo "⚠️  Jellyfin not deployed or not accessible"
-fi
 
 echo "=== Service Test Complete ==="
 EOF

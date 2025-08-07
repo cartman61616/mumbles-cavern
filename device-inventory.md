@@ -18,7 +18,7 @@ Comprehensive tracking and monitoring document for all devices in the Mumbles Ca
 | 🔵 **PLANNED** | Nappy (Node 4) | Development Environment | Awaiting deployment |
 | 🟢 **ACTIVE** | ASUSTOR NAS | Primary Storage | TrueNAS reset pending |
 | 🟡 **TRANSITIONING** | Snorlax Prime | Current Homelab Server | Migration to gaming/dev role |
-| 🟢 **ACTIVE** | Beast Rig | Primary Gaming PC | None |
+| 🟢 **ACTIVE** | Mighty Snorlax | Primary Gaming PC | None |
 | 🔵 **INTEGRATING** | MacBook Pro | Tri-Role Workstation | Awaiting integration |
 
 ## Core Infrastructure
@@ -265,7 +265,7 @@ Port Configuration:
 
 ## Gaming & Workstation Infrastructure
 
-### Beast Rig (Primary Gaming PC)
+### Mighty Snorlax (Primary Gaming PC)
 ```yaml
 Hardware:
   CPU: AMD Ryzen 5600X
@@ -274,7 +274,7 @@ Hardware:
   Storage: NVMe SSDs
   
 Network:
-  Hostname: beast-rig.mumblescavern.local
+  Hostname: mighty-snorlax.mumblescavern.local
   IP: 192.168.80.10
   VLAN: Gaming (80)
   Connection: Wired gigabit
@@ -343,7 +343,7 @@ Status:
   Services: Steam client, emulation
   
 Gaming Services:
-  - Steam Remote Play from Beast Rig
+  - Steam Remote Play from Mighty Snorlax
   - Local gaming library
   - Emulation (RetroArch, etc.)
   - Network game streaming
@@ -358,7 +358,7 @@ Hardware:
   Storage: SSD
   
 Network:
-  Hostname: macbook-cavern.mumblescavern.local
+  Hostname: dreamy-mac.mumblescavern.local
   Primary IP: 192.168.20.50
   VLAN: Services (20) - Primary
   Additional Access: All VLANs via routing

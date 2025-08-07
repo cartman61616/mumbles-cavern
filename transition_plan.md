@@ -22,7 +22,7 @@ Based on your README progress report, you've successfully completed the foundati
 - **Management**: UniFi Dream Machine Pro + Flex Mini switch
 
 **Gaming Infrastructure (Two Separate Systems)**:
-- **beast-rig**: Ryzen 5600X, RTX 3070, 64GB RAM - Primary gaming PC (Gaming VLAN)
+- **mighty-snorlax**: Ryzen 5600X, RTX 3070, 64GB RAM - Primary gaming PC (Gaming VLAN)
 - **Snorlax Prime**: Intel i5-6500, 32GB RAM, GTX 970 - Current homelab server (needs transition)
 
 **Storage Infrastructure**:
@@ -124,12 +124,12 @@ Fresh Service Deployment Strategy:
 
 ```
 Gaming Services Deployment:
-├── beast-rig (192.168.80.10): Primary gaming workstation (separate from homelab)
+├── mighty-snorlax (192.168.80.10): Primary gaming workstation (separate from homelab)
 │   └── Ryzen 5600X, RTX 3070 - dedicated gaming machine
 ├── Snorlax Prime: Transition from homelab server to gaming/development support
 │   └── Intel i5-6500, GTX 970 - can host retro gaming or development
 ├── Gaming Services on Dell Cluster:
-│   ├── Sunshine/Moonlight Server (for streaming from beast-rig)
+│   ├── Sunshine/Moonlight Server (for streaming from mighty-snorlax)
 │   ├── RetroPie/Batocera Server (could run on Snorlax Prime or Dell cluster)
 │   ├── Game Library Management
 │   └── Save State Synchronization
@@ -328,7 +328,7 @@ Nappy (i5-6500T, Node 4): Development Environment
 
 ### Current State
 ```
-beast-rig (Primary Gaming PC):
+mighty-snorlax (Primary Gaming PC):
 ├── Role: Dedicated gaming workstation (separate from homelab)
 ├── CPU: Ryzen 5600X (high performance gaming)
 ├── GPU: RTX 3070 (modern gaming, VR, streaming)
@@ -351,7 +351,7 @@ Dell Cluster (Fresh Homelab):
 
 ### Final State
 ```
-beast-rig (Gaming Workstation):
+mighty-snorlax (Gaming Workstation):
 ├── Role: Primary gaming and content creation
 ├── Services: Gaming clients, streaming, VR
 ├── Connection: Gaming VLAN (192.168.80.10)

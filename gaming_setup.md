@@ -59,7 +59,7 @@ check_gaming_devices() {
     log_message "=== Gaming Device Connectivity ==="
     
     GAMING_DEVICES=(
-        "192.168.80.10:beast-rig"
+        "192.168.80.10:mighty-snorlax"
         "192.168.80.20:sleepy-deck"
         "192.168.80.40:dreamy-console-1"
     )
@@ -141,7 +141,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.saves.entrypoints=websecure"
-      - "traefik.http.routers.saves.rule=Host(`saves.yourdomain.com`)"
+      - "traefik.http.routers.saves.rule=Host(`saves.snorlax.me`)"
       - "traefik.http.routers.saves.middlewares=security-headers@file"
       - "traefik.http.routers.saves.tls=true"
       - "traefik.http.routers.saves.tls.certresolver=cloudflare"
@@ -258,10 +258,10 @@ chmod +x scripts/manage-saves.sh
 Back in **Cloudflare Dashboard**, add gaming service hostnames to your tunnel:
 
 ```
-gaming.yourdomain.com → http://192.168.1.23:80 (Sunshine via Traefik)
-retro.yourdomain.com → http://192.168.1.23:80 (RetroArch via Traefik)
-games.yourdomain.com → http://192.168.1.23:80 (Game Library via Traefik)
-saves.yourdomain.com → http://192.168.1.23:80 (Save Management via Traefik)
+gaming.snorlax.me → http://192.168.1.23:80 (Sunshine via Traefik)
+retro.snorlax.me → http://192.168.1.23:80 (RetroArch via Traefik)
+games.snorlax.me → http://192.168.1.23:80 (Game Library via Traefik)
+saves.snorlax.me → http://192.168.1.23:80 (Save Management via Traefik)
 ```
 
 ### Configure Gaming Service Security
@@ -326,7 +326,7 @@ http:
   # Gaming service routers with optimized middleware
   routers:
     sunshine-gaming:
-      rule: "Host(`gaming.yourdomain.com`)"
+      rule: "Host(`gaming.snorlax.me`)"
       entrypoints:
         - websecure
       middlewares:
@@ -336,7 +336,7 @@ http:
       service: sunshine-service
 
     game-library:
-      rule: "Host(`games.yourdomain.com`)"
+      rule: "Host(`games.snorlax.me`)"
       entrypoints:
         - websecure
       middlewares:
@@ -370,8 +370,8 @@ docker-compose restart traefik
 
 # Test gaming service access
 sleep 30
-curl -k https://gaming.yourdomain.com
-curl -k https://games.yourdomain.com
+curl -k https://gaming.snorlax.me
+curl -k https://games.snorlax.me
 ```
 
 ## Step 10: Create Gaming Performance Optimization Scripts
@@ -666,7 +666,7 @@ TARGET_EOF
 discover_gaming_devices() {
     ACTIVE_TARGETS=()
     
-    # Check if Beast Rig has monitoring
+    # Check if Mighty Snorlax has monitoring
     if ping -c 1 -W 2 192.168.80.10 > /dev/null 2>&1; then
         if curl -s http://192.168.80.10:9100/metrics > /dev/null 2>&1; then
             ACTIVE_TARGETS+=("192.168.80.10:9100")
@@ -730,14 +730,14 @@ cat > docs/gaming-infrastructure-guide.md << 'EOF'
 - **QoS**: Highest priority for lowest latency
 
 ## Gaming Services
-- **Game Streaming**: https://gaming.yourdomain.com (Sunshine/Moonlight)
-- **Retro Gaming**: https://retro.yourdomain.com (RetroArch web interface)
-- **Game Library**: https://games.yourdomain.com (ROM management)
-- **Save Management**: https://saves.yourdomain.com (Save state sync)
+- **Game Streaming**: https://gaming.snorlax.me (Sunshine/Moonlight)
+- **Retro Gaming**: https://retro.snorlax.me (RetroArch web interface)
+- **Game Library**: https://games.snorlax.me (ROM management)
+- **Save Management**: https://saves.snorlax.me (Save state sync)
 
 ## Gaming Device Configuration
 
-### Beast Rig (192.168.80.10)
+### Mighty Snorlax (192.168.80.10)
 - **Purpose**: Primary gaming PC
 - **Network**: Gaming VLAN for optimal performance
 - **Streaming**: Can host games via Sunshine
@@ -818,27 +818,27 @@ cat > docs/gaming-user-manual.md << 'EOF'
 
 ### Setting Up Game Streaming
 1. **Install Moonlight** on your client device
-2. **Access**: https://gaming.yourdomain.com
+2. **Access**: https://gaming.snorlax.me
 3. **Pair device** using PIN from Sunshine web interface
-4. **Add games** from Beast Rig or streaming server
+4. **Add games** from Mighty Snorlax or streaming server
 5. **Start streaming** with optimized settings
 
 ### Using Retro Gaming
-1. **Access**: https://retro.yourdomain.com
+1. **Access**: https://retro.snorlax.me
 2. **Upload ROMs** to appropriate console folders
 3. **Configure controllers** in RetroArch settings
 4. **Save states** are automatically synced
 5. **Achievements** tracked via RetroAchievements
 
 ### Managing Game Library
-1. **Access**: https://games.yourdomain.com
+1. **Access**: https://games.snorlax.me
 2. **Organize ROMs** by console and region
 3. **Add metadata** and artwork automatically
 4. **Create playlists** for favorite games
 5. **Download game** info from IGDB database
 
 ### Save State Management
-1. **Access**: https://saves.yourdomain.com
+1. **Access**: https://saves.snorlax.me
 2. **Sync saves** across multiple devices
 3. **Backup saves** automatically every 6 hours
 4. **Restore saves** from any backup point
@@ -862,7 +862,7 @@ cat > docs/gaming-user-manual.md << 'EOF'
 
 ## Gaming Device Setup Instructions
 
-### Windows Gaming PC (Beast Rig)
+### Windows Gaming PC (Mighty Snorlax)
 ```cmd
 # Set static IP
 netsh interface ip set address "Ethernet" static 192.168.80.10 255.255.255.0 192.168.80.1
@@ -1061,7 +1061,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sunshine.entrypoints=websecure"
-      - "traefik.http.routers.sunshine.rule=Host(`gaming.yourdomain.com`)"
+      - "traefik.http.routers.sunshine.rule=Host(`gaming.snorlax.me`)"
       - "traefik.http.routers.sunshine.middlewares=admin-whitelist@file,security-headers@file"
       - "traefik.http.routers.sunshine.tls=true"
       - "traefik.http.routers.sunshine.tls.certresolver=cloudflare"
@@ -1093,7 +1093,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.retropie.entrypoints=websecure"
-      - "traefik.http.routers.retropie.rule=Host(`retro.yourdomain.com`)"
+      - "traefik.http.routers.retropie.rule=Host(`retro.snorlax.me`)"
       - "traefik.http.routers.retropie.middlewares=security-headers@file"
       - "traefik.http.routers.retropie.tls=true"
       - "traefik.http.routers.retropie.tls.certresolver=cloudflare"
@@ -1293,7 +1293,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.romm.entrypoints=websecure"
-      - "traefik.http.routers.romm.rule=Host(`games.yourdomain.com`)"
+      - "traefik.http.routers.romm.rule=Host(`games.snorlax.me`)"
       - "traefik.http.routers.romm.middlewares=security-headers@file"
       - "traefik.http.routers.romm.tls=true"
       - "traefik.http.routers.romm.tls.certresolver=cloudflare"
@@ -1555,8 +1555,8 @@ cat > scripts/gaming-device-setup.sh << 'EOF'
 
 echo "=== Gaming Device Setup Guide ==="
 
-# Beast Rig Configuration
-echo "Beast Rig (192.168.80.10) Configuration:"
+# Mighty Snorlax Configuration
+echo "Mighty Snorlax (192.168.80.10) Configuration:"
 echo "1. Install Moonlight client for game streaming"
 echo "2. Configure static IP: 192.168.80.10"
 echo "3. Install Steam, Epic Games, Battle.net launchers"
@@ -1587,7 +1587,7 @@ cat > /tmp/gaming-device-monitor.sh << 'DEVICE_EOF'
 # Monitor gaming devices on network
 
 GAMING_DEVICES=(
-    "192.168.80.10:beast-rig"
+    "192.168.80.10:mighty-snorlax"
     "192.168.80.20:sleepy-deck"
     "192.168.80.40:dreamy-console-1"
     "192.168.80.42:drowsy-switch"

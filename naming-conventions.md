@@ -48,10 +48,10 @@ Naming scheme supports 20+ devices with thematic variations.
 
 | Hostname | FQDN | Role | Hardware | IP Address |
 |----------|------|------|----------|------------|
-| `beast-rig` | `beast-rig.mumblescavern.local` | Primary Gaming PC | Ryzen 5600X, RTX 3070 | 192.168.80.10 |
+| `mighty-snorlax` | `mighty-snorlax.mumblescavern.local` | Primary Gaming PC | Ryzen 5600X, RTX 3070 | 192.168.80.10 |
 | `snorlax-prime` | `snorlax-prime.mumblescavern.local` | Gaming/Dev Support | Intel i5-6500, GTX 970 | 192.168.80.15 |
 | `sleepy-deck` | `sleepy-deck.mumblescavern.local` | Portable Gaming | Steam Deck | 192.168.80.20 |
-| `macbook-cavern` | `macbook-cavern.mumblescavern.local` | Tri-Role Workstation | MacBook Pro | 192.168.20.50 |
+| `dreamy-mac` | `dreamy-mac.mumblescavern.local` | Tri-Role Workstation | MacBook Pro | 192.168.20.50 |
 
 ## Service Naming
 

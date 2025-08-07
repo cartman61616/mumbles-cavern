@@ -27,10 +27,10 @@ Implement a **Snorlax-themed naming convention** with clear device type identifi
 - `flex-mini.mumblescavern.local` - UniFi Flex Mini switch
 
 **Gaming & Workstation**:
-- `beast-rig.mumblescavern.local` - Primary gaming workstation
+- `mighty-snorlax.mumblescavern.local` - Primary gaming workstation
 - `snorlax-prime.mumblescavern.local` - Current homelab server (transitioning)
 - `sleepy-deck.mumblescavern.local` - Steam Deck
-- `macbook-cavern.mumblescavern.local` - MacBook Pro tri-role station
+- `dreamy-mac.mumblescavern.local` - MacBook Pro tri-role station
 
 ### Service Naming Convention
 

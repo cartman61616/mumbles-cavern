@@ -151,7 +151,7 @@ Traffic Rules:
 ### Gaming Device DHCP Reservations
 ```
 # Gaming VLAN (192.168.80.x) Assignments
-192.168.80.10: beast-rig (Primary gaming PC)
+192.168.80.10: mighty-snorlax (Primary gaming PC)
 192.168.80.20: sleepy-deck (Steam Deck)
 192.168.80.21: sleepy-deck-dock (Steam Deck dock)
 192.168.80.40: dreamy-console-1 (PS5/Xbox/Switch)
