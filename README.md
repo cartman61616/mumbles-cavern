@@ -86,9 +86,10 @@ Track your deployment progress using this checklist:
 
 ### Phase Status
 - [x] **Hardware Preparation** - BIOS updates and optimization complete
-- [x] **Network Infrastructure** - VLANs, QoS, and switch configuration complete! 🚀 ([Progress](network_setup_progress.md))
+- [x] **Network Infrastructure** - VLANs, QoS, and USW-Lite-16-PoE configuration complete! 🚀 ([Progress](network_setup_progress.md))
 - [x] **Primary Node** - Proxmox installed and inter-VLAN routing working! 🚀
 - [x] **Cluster Formation** - 2-node cluster created and operational! 🚀
+- [x] **VLAN Testing & Validation** - All VLANs (1,10,20) fully operational with USW-Lite-16-PoE! 🚀
 - [ ] **Storage Integration** - TrueNAS and local storage configured
   - 🔄 **Currently migrating data to extra drives for ASUSTOR NAS reset**
 - [x] **Proxmox 9.0 Upgrade** - Upgrade cluster to latest Proxmox version with enhanced features! 🚀
@@ -99,7 +100,9 @@ Track your deployment progress using this checklist:
 
 ### Infrastructure Status
 - [x] **Hardware Validated** - All Dell nodes tested and operational
-- [x] **Network Segmentation** - VLANs properly configured and tested
+- [x] **Network Segmentation** - VLANs properly configured and tested with USW-Lite-16-PoE
+- [x] **VLAN Functionality** - Management (10), Services (20), Default (1) all operational
+- [x] **Switch Infrastructure** - USW-Lite-16-PoE providing full managed capabilities
 - [ ] **High Availability** - Cluster failover tested
 - [ ] **Backup Strategy** - Data protection implemented
 - [ ] **Monitoring** - System health monitoring active

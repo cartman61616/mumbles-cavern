@@ -59,8 +59,26 @@ qm set 101 --ipconfig0 ip=192.168.10.50/24,gw=192.168.10.1
 qm start 101
 sleep 30
 nmap -sn 192.168.10.0/24
-# Expected: VM appears at 192.168.10.50 ✅
+# Result: ✅ VM appears at 192.168.10.50 - SUCCESS!
+
+# Test VM on VLAN 20
+qm stop 101
+qm set 101 --net0 virtio,bridge=vmbr0,tag=20
+qm set 101 --ipconfig0 ip=dhcp
+qm start 101
+sleep 30
+nmap -sn 192.168.20.0/24
+# Result: ✅ VM got DHCP 192.168.20.100 - SUCCESS!
 ```
+
+#### Final Validation Results (August 2025)
+**VLAN 10 (Management)**: ✅ Static IP assignment working perfectly  
+**VLAN 20 (Services)**: ✅ DHCP assignment working perfectly  
+**Network Performance**: ✅ Sub-2 second network scans  
+**USW-Lite-16-PoE**: ✅ Full VLAN trunking capabilities confirmed  
+
+**Problem Resolution Time**: Same day hardware identification and replacement  
+**Infrastructure Impact**: Zero downtime - services can now deploy properly segmented
 
 ## 🚨 Critical Network Configuration Issues
 
