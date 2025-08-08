@@ -106,30 +106,34 @@ DHCP Range: 192.168.90.100 - 192.168.90.150
 
 ## Step 3: Configure Switch Profiles and Port Management
 
-### Dell Cluster Switch Profile (UniFi Flex Mini)
+### Dell Cluster Switch Profile (UniFi USW-Lite-16-PoE)
 ```
 Profile Name: Dell-Cluster-Profile
 Native VLAN: Default (VLAN 1) - Initial deployment
 Tagged VLANs: 
-- VLAN 10 (Management) - Future use
-- VLAN 20 (Services) - Future use
-- VLAN 30 (Storage) - Future use
-- VLAN 80 (Gaming) - Immediate use
+- VLAN 10 (Management) - Proxmox infrastructure
+- VLAN 20 (Services) - Application services
+- VLAN 30 (Storage) - NAS and storage traffic
+- VLAN 80 (Gaming) - Gaming devices and services
 
 Port Configuration:
-Port 1: Dell Node 1 (pve-node1)
-Port 2: Dell Node 2 (pve-node2)  
-Port 3: Dell Node 3 (pve-node3) - Future
-Port 4: Dell Node 4 (pve-node4) - Future
-Port 5: Uplink to main network (All VLANs)
+Port 1: Uplink to UDM Pro (All VLANs trunk)
+Port 2: Dell Node 1 (drowzee) - All VLANs
+Port 3: Dell Node 2 (sleepy) - All VLANs  
+Port 4: Dell Node 3 (snorlax) - Future
+Port 5: Dell Node 4 (jigglypuff) - Future
+Ports 6-16: Available for expansion
 ```
 
-### Apply Profile to UniFi Flex Mini
+### Apply Profile to USW-Lite-16-PoE
 1. Go to **Devices** → **Switches**
-2. Select your UniFi Flex Mini
+2. Select your UniFi USW-Lite-16-PoE
 3. Click **Port Manager**
-4. Apply "Dell-Cluster-Profile" to ports 1-4
-5. Set port 5 as "All" (trunk port to main switch)
+4. Set Port 1 as "All" (trunk to UDM Pro)
+5. Apply "Dell-Cluster-Profile" to ports 2-5 (All VLANs)
+6. Configure individual VLANs as needed for specific workloads
+
+> **⚠️ Important**: UniFi Flex Mini has limited VLAN support and blocks tagged traffic by default. USW-Lite-16-PoE provides full managed switch capabilities required for proper VLAN trunking.
 
 ## Step 4: Configure Gaming Network Optimization
 

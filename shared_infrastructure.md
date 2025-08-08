@@ -24,8 +24,9 @@ qm create 100 \
 # Create VM disk on shared storage (enables migration)
 qm set 100 --scsi0 asustor-vm-storage:32
 
-# Set static IP for infrastructure consistency
-qm set 100 --ipconfig0 ip=192.168.1.15/24,gw=192.168.1.1
+# Set static IP for infrastructure consistency (Management VLAN after USW-Lite-16-PoE deployment)
+qm set 100 --ipconfig0 ip=192.168.10.15/24,gw=192.168.10.1
+qm set 100 --net0 virtio,bridge=vmbr0,tag=10
 
 # Start the VM
 qm start 100
@@ -36,8 +37,8 @@ qm terminal 100
 
 ### Initial VM Setup
 ```bash
-# SSH to the new VM
-ssh ubuntu@192.168.1.15
+# SSH to the new VM (Management VLAN)
+ssh ubuntu@192.168.10.15
 
 # Update system
 sudo apt update && sudo apt upgrade -y

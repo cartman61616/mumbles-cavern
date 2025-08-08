@@ -11,7 +11,7 @@ This repository contains detailed documentation for deploying a complete homelab
 - **Compute Nodes**: 4x Dell OptiPlex (3x 7050 Micro, 1x 6500T)
 - **CPU**: Intel i5 processors (6th/7th gen)
 - **Memory**: 32GB RAM per node
-- **Networking**: UniFi Dream Machine Pro + Flex Mini switch
+- **Networking**: UniFi Dream Machine Pro + USW-Lite-16-PoE switch
 - **Storage**: ASUSTOR TrueNAS (shared) + local NVMe/SSD per node
 - **Power**: Anker Prime USB-C charger with barrel jack adapters
 

@@ -5,6 +5,65 @@ This document captures key lessons learned, troubleshooting patterns, and optimi
 
 ## 🚨 Critical Network Configuration Issues
 
+### UniFi Flex Mini VLAN Limitations (August 2025)
+**Issue**: VMs with VLAN tagging could not obtain IP addresses despite correct Proxmox configuration  
+**Root Cause**: UniFi Flex Mini blocks all tagged VLAN traffic with no override option available
+
+#### The Problem
+```bash
+# VM Configuration (Correct):
+qm config 101 | grep net
+# Result: net0: virtio=BC:24:11:8A:7C:05,bridge=vmbr0,tag=10
+
+# Proxmox Bridge (Correct):
+bridge vlan show
+# Result: tap101i0    10 PVID Egress Untagged
+
+# VM Network Status (Failed):
+# Inside VM: ip addr show
+# Result: eth0 has no IP address - DHCP fails completely
+```
+
+#### The Discovery Process
+1. **VM works on default VLAN** (192.168.1.254) ✅
+2. **VM fails on any tagged VLAN** (10, 20, 80) ❌  
+3. **Host can reach VLAN gateways** (192.168.10.1) ✅
+4. **UniFi interface shows**: "Tagged VLAN Management is limited on this device" ❌
+5. **Only option available**: "Block All" for tagged VLANs ❌
+
+#### The Solution: Hardware Upgrade
+**Replaced**: UniFi Flex Mini → UniFi USW-Lite-16-PoE
+```bash
+# New Network Architecture:
+UDM Pro → USW-Lite-16-PoE → Dell OptiPlex nodes
+
+# Port Configuration:
+Port 1: Uplink to UDM Pro (All VLANs trunk)
+Port 2-5: Dell nodes (All VLANs)
+Port 6-16: Expansion ports
+```
+
+#### Key Lessons
+- **"Smart managed" ≠ "Fully managed"** - Flex Mini has significant VLAN limitations
+- **Test VLAN functionality early** - Don't assume hardware supports planned features  
+- **Hardware research critical** - Verify switch capabilities match network design
+- **Systematic troubleshooting works** - Layer-by-layer diagnosis identified root cause
+- **Investment in proper networking pays off** - USW-Lite-16-PoE enables proper VLAN architecture
+
+#### Verification Commands After Fix
+```bash
+# Test VM on VLAN 10
+qm stop 101
+qm set 101 --net0 virtio,bridge=vmbr0,tag=10
+qm set 101 --ipconfig0 ip=192.168.10.50/24,gw=192.168.10.1
+qm start 101
+sleep 30
+nmap -sn 192.168.10.0/24
+# Expected: VM appears at 192.168.10.50 ✅
+```
+
+## 🚨 Critical Network Configuration Issues
+
 ### Inter-VLAN Routing Gateway Mismatch
 **Issue**: Primary Node (Phase 1) had inter-VLAN routing failure  
 **Root Cause**: Gateway configuration mismatch between node VLAN and gateway VLAN
