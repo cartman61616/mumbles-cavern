@@ -372,7 +372,62 @@ VLAN 80 (Gaming):     192.168.80.x - Gaming devices and services
 - **Cluster Setup**: `cluster_setup.md` - Multi-node networking
 - **Progress Tracking**: `README.md` - Deployment status
 
+## 🚨 Cluster Naming Consistency Issues (August 2025)
+
+### Mixed Naming Scheme Discovery
+**Issue**: Proxmox cluster created with default names, later renamed hosts, causing UI/filesystem inconsistency  
+**Root Cause**: Mixed naming in cluster filesystem and configuration
+
+#### The Problem
+```bash
+# Cluster filesystem shows mixed naming:
+ls -la /etc/pve/nodes/
+# Result: drowzee, pve-node1, pve-node2, sleepy directories
+
+# Backend cluster healthy:
+pvecm status  # Shows both nodes communicating properly
+pvecm nodes   # Shows pve-node1/pve-node2 naming
+
+# UI display issue:
+# - drowzee web UI: Only shows drowzee node
+# - sleepy web UI: Shows both nodes correctly
+# - Inconsistent cluster management experience
+```
+
+#### The Discovery Process
+1. **Backend Verification**: `pvecm status` showed healthy 2-node cluster
+2. **UI Investigation**: Primary node couldn't see secondary in web interface
+3. **Filesystem Analysis**: `/etc/pve/nodes/` revealed mixed naming scheme
+4. **Service Status**: All Proxmox services running normally
+5. **Communication Test**: Both nodes accessible independently
+
+#### Decision: Nuclear Cluster Rebuild
+**Rationale**: Clean boxes with minimal services make rebuild low-risk
+- **Timing**: Wait for ASUSTOR data migration completion
+- **Approach**: Complete reinstall/rebuild with consistent naming
+- **Benefits**: Professional infrastructure foundation
+- **Documentation**: [ADR-001](adrs/001-cluster-naming-consistency.md)
+
+#### Key Lessons
+- **Plan Naming Early**: Establish naming conventions before cluster creation
+- **Test UI Thoroughly**: Backend health ≠ UI functionality
+- **Nuclear vs. Surgical**: Sometimes clean rebuild is simpler than fixing
+- **Timing Matters**: Execute infrastructure changes during maintenance windows
+- **Documentation Critical**: ADRs help justify architectural decisions
+
+#### Prevention Strategies
+```bash
+# Future cluster creation with proper naming:
+1. Set hostnames BEFORE Proxmox installation
+2. Create cluster with final names from day one
+3. Validate UI displays all nodes before proceeding
+4. Document naming conventions in project standards
+```
+
+**Resolution Timeline**: Scheduled post-ASUSTOR migration completion (70% as of 2025-08-09)
+
 ---
 
 *Document started during Phase 1 completion - January 2025*  
-*Living document: Updated with each phase completion and significant learning*
+*Living document: Updated with each phase completion and significant learning*  
+*Latest update: 2025-08-09 - Cluster naming consistency discovery*

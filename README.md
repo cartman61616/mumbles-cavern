@@ -88,10 +88,14 @@ Track your deployment progress using this checklist:
 - [x] **Hardware Preparation** - BIOS updates and optimization complete
 - [x] **Network Infrastructure** - VLANs, QoS, and USW-Lite-16-PoE configuration complete! 🚀 ([Progress](network_setup_progress.md))
 - [x] **Primary Node** - Proxmox installed and inter-VLAN routing working! 🚀
-- [x] **Cluster Formation** - 2-node cluster created and operational! 🚀
+- [⚠️] **Cluster Formation** - 2-node cluster functional but requires rebuild for naming consistency
+  - ✅ Backend cluster communication healthy (`pvecm status` confirms both nodes)
+  - ❌ UI display issue: drowzee web interface cannot see sleepy node
+  - 🔄 **PENDING**: Nuclear cluster rebuild post-ASUSTOR migration ([ADR-001](adrs/001-cluster-naming-consistency.md))
 - [x] **VLAN Testing & Validation** - All VLANs (1,10,20) fully operational with USW-Lite-16-PoE! 🚀
 - [ ] **Storage Integration** - TrueNAS and local storage configured
-  - 🔄 **Currently migrating data to extra drives for ASUSTOR NAS reset**
+  - 🔄 **Data migration 70% complete** - Migrating data to extra drives for ASUSTOR NAS reset
+  - ⏸️ **BLOCKED**: Waiting for cluster rebuild completion post-migration
 - [x] **Proxmox 9.0 Upgrade** - Upgrade cluster to latest Proxmox version with enhanced features! 🚀
 - [ ] **Essential Services** - Core homelab services deployed
 - [ ] **Monitoring & Management** - System observability and alerting deployed
@@ -108,7 +112,13 @@ Track your deployment progress using this checklist:
 - [ ] **Monitoring** - System health monitoring active
 - [ ] **Documentation** - Infrastructure as Code documented
 
-### Next Steps
+### Immediate Next Steps
+- [ ] **Complete ASUSTOR data migration** (70% complete)
+- [ ] **Execute nuclear cluster rebuild** with proper drowzee/sleepy naming
+- [ ] **Deploy TrueNAS integration** post-rebuild
+- [ ] **Begin essential services deployment** (Plex, *arr stack)
+
+### Future Steps
 - [ ] Performance benchmarking and optimization
 - [ ] Advanced service deployment (CI/CD, development environments)
 - [ ] Disaster recovery testing
